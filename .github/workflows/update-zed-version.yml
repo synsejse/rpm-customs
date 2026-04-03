@@ -15,6 +15,10 @@ jobs:
         with:
           fetch-depth: 0
       
+      - name: Pull latest changes
+        run: |
+          git pull origin main
+      
       - name: Check for new Zed version
         id: check_version
         run: |
