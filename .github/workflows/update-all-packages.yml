@@ -7,56 +7,170 @@ on:
 
 permissions:
   contents: write
-  actions: write
 
 jobs:
-  trigger-updates:
+  update-all:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Zed update
-        uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'update-zed-version.yml',
-              ref: 'main'
-            });
-            console.log('Triggered Zed update workflow');
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Trigger AmneziaWG DKMS update
-        uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'update-amneziawg-dkms-version.yml',
-              ref: 'main'
-            });
-            console.log('Triggered AmneziaWG DKMS update workflow');
+      # ============================================
+      # Zed
+      # ============================================
+      - name: Check for new Zed version
+        id: check_zed
+        run: |
+          CURRENT_VERSION=$(grep -oP '^Version:\s*\K[0-9.]+' zed/zed.spec)
+          LATEST_VERSION=$(curl -s https://api.github.com/repos/zed-industries/zed/releases/latest | jq -r '.tag_name' | sed 's/^v//')
+          echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "latest=$LATEST_VERSION" >> $GITHUB_OUTPUT
+          if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ]; then
+            echo "update_needed=true" >> $GITHUB_OUTPUT
+          else
+            echo "update_needed=false" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Trigger AmneziaWG Tools update
-        uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'update-amneziawg-tools-version.yml',
-              ref: 'main'
-            });
-            console.log('Triggered AmneziaWG Tools update workflow');
+      - name: Update Zed spec
+        if: steps.check_zed.outputs.update_needed == 'true'
+        run: |
+          LATEST_VERSION="${{ steps.check_zed.outputs.latest }}"
+          sed -i "s/^Version:\s*.*/Version:        $LATEST_VERSION/" zed/zed.spec
+          CURRENT_DATE=$(date '+%a %b %d %Y')
+          CHANGELOG_ENTRY="* $CURRENT_DATE Automated Update <github-actions@github.com> - $LATEST_VERSION-1"
+          sed -i "/^%changelog/a $CHANGELOG_ENTRY\n- Update to version $LATEST_VERSION" zed/zed.spec
 
-      - name: Trigger Mesa update
-        uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'update-mesa-version.yml',
-              ref: 'main'
-            });
-            console.log('Triggered Mesa update workflow');
+      - name: Commit Zed changes
+        if: steps.check_zed.outputs.update_needed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add zed/zed.spec
+          git commit -m "chore(zed): update to version ${{ steps.check_zed.outputs.latest }}"
+
+      # ============================================
+      # AmneziaWG DKMS
+      # ============================================
+      - name: Check for new AmneziaWG DKMS version
+        id: check_dkms
+        run: |
+          CURRENT_COMMIT=$(grep -oP '^%global commit \K[a-f0-9]+' amneziawg-dkms/amneziawg-dkms.spec)
+          LATEST_COMMIT=$(curl -s https://api.github.com/repos/amnezia-vpn/amneziawg-linux-kernel-module/commits | jq -r '.[0].sha')
+          LATEST_SHORT=$(echo $LATEST_COMMIT | cut -c1-7)
+          COMMIT_DATE=$(date '+%Y%m%d')
+          echo "current=$CURRENT_COMMIT" >> $GITHUB_OUTPUT
+          echo "latest=$LATEST_COMMIT" >> $GITHUB_OUTPUT
+          echo "short=$LATEST_SHORT" >> $GITHUB_OUTPUT
+          echo "date=$COMMIT_DATE" >> $GITHUB_OUTPUT
+          if [ "$CURRENT_COMMIT" != "$LATEST_COMMIT" ]; then
+            echo "update_needed=true" >> $GITHUB_OUTPUT
+          else
+            echo "update_needed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update AmneziaWG DKMS spec
+        if: steps.check_dkms.outputs.update_needed == 'true'
+        run: |
+          COMMIT="${{ steps.check_dkms.outputs.latest }}"
+          SHORT="${{ steps.check_dkms.outputs.short }}"
+          DATE="${{ steps.check_dkms.outputs.date }}"
+          sed -i "s/^%global commit .*/%global commit $COMMIT/" amneziawg-dkms/amneziawg-dkms.spec
+          sed -i "s/^%global commitdate .*/%global commitdate $DATE/" amneziawg-dkms/amneziawg-dkms.spec
+          CURRENT_DATE=$(date '+%a %b %d %Y')
+          CHANGELOG_ENTRY="* $CURRENT_DATE Automated Update <github-actions@github.com> - 1:1.0.${DATE}git${SHORT}-1"
+          sed -i "/^%changelog/a $CHANGELOG_ENTRY\n- Update to git commit $SHORT" amneziawg-dkms/amneziawg-dkms.spec
+
+      - name: Commit AmneziaWG DKMS changes
+        if: steps.check_dkms.outputs.update_needed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add amneziawg-dkms/amneziawg-dkms.spec
+          git commit -m "chore(amneziawg-dkms): update to commit ${{ steps.check_dkms.outputs.short }}"
+
+      # ============================================
+      # AmneziaWG Tools
+      # ============================================
+      - name: Check for new AmneziaWG Tools version
+        id: check_tools
+        run: |
+          CURRENT_COMMIT=$(grep -oP '^%global commit \K[a-f0-9]+' amneziawg-tools/amneziawg-tools.spec)
+          LATEST_COMMIT=$(curl -s https://api.github.com/repos/amnezia-vpn/amneziawg-tools/commits | jq -r '.[0].sha')
+          LATEST_SHORT=$(echo $LATEST_COMMIT | cut -c1-7)
+          COMMIT_DATE=$(date '+%Y%m%d')
+          echo "current=$CURRENT_COMMIT" >> $GITHUB_OUTPUT
+          echo "latest=$LATEST_COMMIT" >> $GITHUB_OUTPUT
+          echo "short=$LATEST_SHORT" >> $GITHUB_OUTPUT
+          echo "date=$COMMIT_DATE" >> $GITHUB_OUTPUT
+          if [ "$CURRENT_COMMIT" != "$LATEST_COMMIT" ]; then
+            echo "update_needed=true" >> $GITHUB_OUTPUT
+          else
+            echo "update_needed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update AmneziaWG Tools spec
+        if: steps.check_tools.outputs.update_needed == 'true'
+        run: |
+          COMMIT="${{ steps.check_tools.outputs.latest }}"
+          SHORT="${{ steps.check_tools.outputs.short }}"
+          DATE="${{ steps.check_tools.outputs.date }}"
+          sed -i "s/^%global commit .*/%global commit $COMMIT/" amneziawg-tools/amneziawg-tools.spec
+          sed -i "s/^%global commitdate .*/%global commitdate $DATE/" amneziawg-tools/amneziawg-tools.spec
+          CURRENT_DATE=$(date '+%a %b %d %Y')
+          CHANGELOG_ENTRY="* $CURRENT_DATE Automated Update <github-actions@github.com> - 1.0.${DATE}git${SHORT}-1"
+          sed -i "/^%changelog/a $CHANGELOG_ENTRY\n- Update to git commit $SHORT" amneziawg-tools/amneziawg-tools.spec
+
+      - name: Commit AmneziaWG Tools changes
+        if: steps.check_tools.outputs.update_needed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add amneziawg-tools/amneziawg-tools.spec
+          git commit -m "chore(amneziawg-tools): update to commit ${{ steps.check_tools.outputs.short }}"
+
+      # ============================================
+      # Mesa
+      # ============================================
+      - name: Check for new Mesa version
+        id: check_mesa
+        run: |
+          CURRENT_COMMIT=$(grep -oP '^%define commit \K[a-f0-9]+' mesa-git/mesa.spec)
+          LATEST_COMMIT=$(curl -s "https://gitlab.freedesktop.org/api/v4/projects/mesa%2Fmesa/repository/commits" | jq -r '.[0].id')
+          LATEST_SHORT=$(echo $LATEST_COMMIT | cut -c1-7)
+          COMMIT_DATE=$(date '+%Y%m%d.%H')
+          echo "current=$CURRENT_COMMIT" >> $GITHUB_OUTPUT
+          echo "latest=$LATEST_COMMIT" >> $GITHUB_OUTPUT
+          echo "short=$LATEST_SHORT" >> $GITHUB_OUTPUT
+          echo "date=$COMMIT_DATE" >> $GITHUB_OUTPUT
+          if [ "$CURRENT_COMMIT" != "$LATEST_COMMIT" ]; then
+            echo "update_needed=true" >> $GITHUB_OUTPUT
+          else
+            echo "update_needed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update Mesa spec
+        if: steps.check_mesa.outputs.update_needed == 'true'
+        run: |
+          COMMIT="${{ steps.check_mesa.outputs.latest }}"
+          SHORT="${{ steps.check_mesa.outputs.short }}"
+          DATE="${{ steps.check_mesa.outputs.date }}"
+          sed -i "s/^%define commit .*/%define commit $COMMIT/" mesa-git/mesa.spec
+          sed -i "s/^%global commit_date .*/%global commit_date $DATE/" mesa-git/mesa.spec
+          CURRENT_RELEASE=$(grep -oP '^Release:\s+0\.\K[0-9]+' mesa-git/mesa.spec)
+          NEW_RELEASE=$((CURRENT_RELEASE + 1))
+          sed -i "s/^Release:\s\+0\.[0-9]\+%/Release:        0.$NEW_RELEASE%/" mesa-git/mesa.spec
+
+      - name: Commit Mesa changes
+        if: steps.check_mesa.outputs.update_needed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add mesa-git/mesa.spec
+          git commit -m "chore(mesa-git): update to commit ${{ steps.check_mesa.outputs.short }}"
+
+      # ============================================
+      # Push all changes at once
+      # ============================================
+      - name: Push all changes
+        run: |
+          git push || echo "No changes to push"
