@@ -1,0 +1,70 @@
+name: Update AmneziaWG DKMS Version
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Run every 6 hours
+  workflow_dispatch:  # Allow manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check for new version
+        id: check_version
+        run: |
+          # Get current commit from spec file
+          CURRENT_COMMIT=$(grep -oP '^%global commit \K[a-f0-9]+' amneziawg-dkms/amneziawg-dkms.spec)
+          echo "Current commit: $CURRENT_COMMIT"
+          
+          # Get latest commit from GitHub API
+          LATEST_COMMIT=$(curl -s https://api.github.com/repos/amnezia-vpn/amneziawg-linux-kernel-module/commits | jq -r '.[0].sha')
+          LATEST_SHORT=$(echo $LATEST_COMMIT | cut -c1-7)
+          COMMIT_DATE=$(date '+%Y%m%d')
+          
+          echo "Latest commit: $LATEST_COMMIT"
+          echo "Short commit: $LATEST_SHORT"
+          echo "current_commit=$CURRENT_COMMIT" >> $GITHUB_OUTPUT
+          echo "latest_commit=$LATEST_COMMIT" >> $GITHUB_OUTPUT
+          echo "latest_short=$LATEST_SHORT" >> $GITHUB_OUTPUT
+          echo "commit_date=$COMMIT_DATE" >> $GITHUB_OUTPUT
+          
+          if [ "$CURRENT_COMMIT" != "$LATEST_COMMIT" ]; then
+            echo "update_needed=true" >> $GITHUB_OUTPUT
+          else
+            echo "update_needed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update spec file
+        if: steps.check_version.outputs.update_needed == 'true'
+        run: |
+          COMMIT="${{ steps.check_version.outputs.latest_commit }}"
+          SHORT="${{ steps.check_version.outputs.latest_short }}"
+          DATE="${{ steps.check_version.outputs.commit_date }}"
+          
+          # Update commit hash
+          sed -i "s/^%global commit .*/%global commit $COMMIT/" amneziawg-dkms/amneziawg-dkms.spec
+          
+          # Update commit date
+          sed -i "s/^%global commitdate .*/%global commitdate $DATE/" amneziawg-dkms/amneziawg-dkms.spec
+          
+          # Add changelog entry
+          CURRENT_DATE=$(date '+%a %b %d %Y')
+          CHANGELOG_ENTRY="* $CURRENT_DATE Automated Update <github-actions@github.com> - 1:1.0.${DATE}git${SHORT}-1"
+          sed -i "/^%changelog/a $CHANGELOG_ENTRY\n- Update to git commit $SHORT" amneziawg-dkms/amneziawg-dkms.spec
+          
+          echo "Updated spec file to commit $SHORT"
+
+      - name: Commit and push changes
+        if: steps.check_version.outputs.update_needed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add amneziawg-dkms/amneziawg-dkms.spec
+          git commit -m "chore(amneziawg-dkms): update to commit ${{ steps.check_version.outputs.latest_short }}"
+          git push
