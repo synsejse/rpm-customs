@@ -1,0 +1,70 @@
+name: Update Zed Version
+
+on:
+  schedule:
+    # Run every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  check-and-update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Check for new Zed version
+        id: check_version
+        run: |
+          # Get current version from spec file
+          CURRENT_VERSION=$(grep -oP '^Version:\s*\K[0-9.]+' zed/zed.spec)
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Get latest version from GitHub API
+          LATEST_VERSION=$(curl -s https://api.github.com/repos/zed-industries/zed/releases/latest | jq -r '.tag_name' | sed 's/^v//')
+          echo "Latest version: $LATEST_VERSION"
+          
+          # Export for next steps
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "latest_version=$LATEST_VERSION" >> $GITHUB_OUTPUT
+          
+          # Check if update is needed
+          if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ]; then
+            echo "update_needed=true" >> $GITHUB_OUTPUT
+            echo "Update needed: $CURRENT_VERSION -> $LATEST_VERSION"
+          else
+            echo "update_needed=false" >> $GITHUB_OUTPUT
+            echo "Already up to date"
+          fi
+      
+      - name: Update version in spec file
+        if: steps.check_version.outputs.update_needed == 'true'
+        run: |
+          LATEST_VERSION="${{ steps.check_version.outputs.latest_version }}"
+          
+          # Update Version field
+          sed -i "s/^Version:\s*.*/Version:        $LATEST_VERSION/" zed/zed.spec
+          
+          # Update changelog with current date
+          CURRENT_DATE=$(date '+%a %b %d %Y')
+          CHANGELOG_ENTRY="* $CURRENT_DATE Automated Update <github-actions@github.com> - $LATEST_VERSION-1"
+          
+          # Add new changelog entry after %changelog line
+          sed -i "/^%changelog/a $CHANGELOG_ENTRY\n- Update to version $LATEST_VERSION" zed/zed.spec
+          
+          echo "Updated spec file to version $LATEST_VERSION"
+      
+      - name: Commit and push changes
+        if: steps.check_version.outputs.update_needed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add zed/zed.spec
+          git commit -m "chore(zed): update to version ${{ steps.check_version.outputs.latest_version }}"
+          git push

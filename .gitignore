@@ -1,0 +1,12 @@
+*.rpm
+*.tar.gz
+*.src.rpm
+/BUILD/
+/BUILDROOT/
+/RPMS/
+/SOURCES/
+/SPECS/
+/SRPMS/
+.DS_Store
+*~
+*.swp
