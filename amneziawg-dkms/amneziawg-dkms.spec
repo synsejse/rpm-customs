@@ -1,5 +1,5 @@
 %global debug_package %{nil}
-%global commit ac946a9e4a4900f99e2cc7ffcfc9ab54d3ec5d87
+%global commit ac946a9df100a17d342b5982d1947deef1b51952
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 %global commitdate 20260403
 
@@ -71,5 +71,7 @@ dkms remove -m amneziawg -v %{version} -q --all || :
 %{_usrsrc}/amneziawg-%{version}
 
 %changelog
+* Fri Apr 03 2026 Automated Update <github-actions@github.com> - 1:1.0.20260403gitac946a9-1
+- Update to git commit ac946a9
 * Fri Apr 04 2025 Automated Update <github-actions@github.com> - 1:1.0.20260403gitac946a9-1
 - Initial automated tracking from git commit ac946a9
