@@ -1,4 +1,4 @@
-%global commit 5d6179a59cfabdfd27c30c6f4ad5fc9e8df34e25
+%global commit 5d6179a6d0842e98dfb349c28cf1bd8e4b9d1079
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 %global commitdate 20260403
 
@@ -60,5 +60,7 @@ WITH_BASHCOMPLETION=yes WITH_WGQUICK=yes WITH_SYSTEMDUNITS=yes -C src
 %{_mandir}/man8/awg-quick.8*
 
 %changelog
+* Fri Apr 03 2026 Automated Update <github-actions@github.com> - 1.0.20260403git5d6179a-1
+- Update to git commit 5d6179a
 * Fri Apr 04 2025 Automated Update <github-actions@github.com> - 1.0.20260403git5d6179a-1
 - Initial automated tracking from git commit 5d6179a
