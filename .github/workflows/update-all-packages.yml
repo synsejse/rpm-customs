@@ -1,0 +1,62 @@
+name: Update All Packages
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Run every 6 hours
+  workflow_dispatch:  # Allow manual trigger
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  trigger-updates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Zed update
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'update-zed-version.yml',
+              ref: 'main'
+            });
+            console.log('Triggered Zed update workflow');
+
+      - name: Trigger AmneziaWG DKMS update
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'update-amneziawg-dkms-version.yml',
+              ref: 'main'
+            });
+            console.log('Triggered AmneziaWG DKMS update workflow');
+
+      - name: Trigger AmneziaWG Tools update
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'update-amneziawg-tools-version.yml',
+              ref: 'main'
+            });
+            console.log('Triggered AmneziaWG Tools update workflow');
+
+      - name: Trigger Mesa update
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'update-mesa-version.yml',
+              ref: 'main'
+            });
+            console.log('Triggered Mesa update workflow');

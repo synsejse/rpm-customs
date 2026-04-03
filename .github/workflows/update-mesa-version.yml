@@ -1,4 +1,4 @@
-name: Update AmneziaWG Tools Version
+name: Update Mesa Version
 
 on:
   workflow_dispatch:  # Triggered by main workflow
@@ -17,13 +17,13 @@ jobs:
         id: check_version
         run: |
           # Get current commit from spec file
-          CURRENT_COMMIT=$(grep -oP '^%global commit \K[a-f0-9]+' amneziawg-tools/amneziawg-tools.spec)
+          CURRENT_COMMIT=$(grep -oP '^%define commit \K[a-f0-9]+' mesa-git/mesa.spec)
           echo "Current commit: $CURRENT_COMMIT"
           
-          # Get latest commit from GitHub API
-          LATEST_COMMIT=$(curl -s https://api.github.com/repos/amnezia-vpn/amneziawg-tools/commits | jq -r '.[0].sha')
+          # Get latest commit from GitLab API
+          LATEST_COMMIT=$(curl -s "https://gitlab.freedesktop.org/api/v4/projects/mesa%2Fmesa/repository/commits" | jq -r '.[0].id')
           LATEST_SHORT=$(echo $LATEST_COMMIT | cut -c1-7)
-          COMMIT_DATE=$(date '+%Y%m%d')
+          COMMIT_DATE=$(date '+%Y%m%d.%H')
           
           echo "Latest commit: $LATEST_COMMIT"
           echo "Short commit: $LATEST_SHORT"
@@ -46,23 +46,23 @@ jobs:
           DATE="${{ steps.check_version.outputs.commit_date }}"
           
           # Update commit hash
-          sed -i "s/^%global commit .*/%global commit $COMMIT/" amneziawg-tools/amneziawg-tools.spec
+          sed -i "s/^%define commit .*/%define commit $COMMIT/" mesa-git/mesa.spec
           
           # Update commit date
-          sed -i "s/^%global commitdate .*/%global commitdate $DATE/" amneziawg-tools/amneziawg-tools.spec
+          sed -i "s/^%global commit_date .*/%global commit_date $DATE/" mesa-git/mesa.spec
           
-          # Add changelog entry
-          CURRENT_DATE=$(date '+%a %b %d %Y')
-          CHANGELOG_ENTRY="* $CURRENT_DATE Automated Update <github-actions@github.com> - 1.0.${DATE}git${SHORT}-1"
-          sed -i "/^%changelog/a $CHANGELOG_ENTRY\n- Update to git commit $SHORT" amneziawg-tools/amneziawg-tools.spec
+          # Increment release number
+          CURRENT_RELEASE=$(grep -oP '^Release:\s+0\.\K[0-9]+' mesa-git/mesa.spec)
+          NEW_RELEASE=$((CURRENT_RELEASE + 1))
+          sed -i "s/^Release:\s\+0\.[0-9]\+%/Release:        0.$NEW_RELEASE%/" mesa-git/mesa.spec
           
-          echo "Updated spec file to commit $SHORT"
+          echo "Updated spec file to commit $SHORT, release 0.$NEW_RELEASE"
 
       - name: Commit and push changes
         if: steps.check_version.outputs.update_needed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add amneziawg-tools/amneziawg-tools.spec
-          git commit -m "chore(amneziawg-tools): update to commit ${{ steps.check_version.outputs.latest_short }}"
+          git add mesa-git/mesa.spec
+          git commit -m "chore(mesa-git): update to commit ${{ steps.check_version.outputs.latest_short }}"
           git push
