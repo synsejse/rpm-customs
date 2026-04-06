@@ -2,7 +2,7 @@
 %global _appid     dev.zed.Zed
 
 Name:           zed
-Version:        0.230.1
+Version:        0.230.2
 Release:        1%{?dist}
 Summary:        A high-performance, multiplayer code editor from the creators of Atom and Tree-sitter
 
@@ -110,5 +110,7 @@ install -Dm0644 crates/zed/resources/app-icon.png \
 %{_datadir}/icons/hicolor/512x512/apps/%{_appid}.png
 
 %changelog
+* Mon Apr 06 2026 Automated Update <github-actions@github.com> - 0.230.2-1
+- Update to version 0.230.2
 * Fri Apr 04 2025 Kristián Kekeš <gamerix2006@gmail.com> - 0.230.1-1
 - Initial RPM spec based on upstream Arch Linux PKGBUILD
