@@ -1,0 +1,14 @@
+#!/bin/sh
+
+set -eu
+
+latest_kernel=$(
+  ls /boot 2>/dev/null | grep -E '^vmlinuz.*cachy' | sort -V | tail -n 1
+)
+
+if [ -z "${latest_kernel}" ]; then
+  echo "No CachyOS kernel found under /boot; leaving default kernel unchanged." >&2
+  exit 0
+fi
+
+grubby --set-default="/boot/${latest_kernel}"
