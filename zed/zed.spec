@@ -2,7 +2,7 @@
 %global _appid     dev.zed.Zed
 
 Name:           zed
-Version:        0.231.1
+Version:        0.231.2
 Release:        1%{?dist}
 Summary:        A high-performance, multiplayer code editor from the creators of Atom and Tree-sitter
 
@@ -110,6 +110,8 @@ install -Dm0644 crates/zed/resources/app-icon.png \
 %{_datadir}/icons/hicolor/512x512/apps/%{_appid}.png
 
 %changelog
+* Fri Apr 10 2026 Automated Update <github-actions@github.com> - 0.231.2-1
+- Update to version 0.231.2
 * Wed Apr 08 2026 Automated Update <github-actions@github.com> - 0.231.1-1
 - Update to version 0.231.1
 * Mon Apr 06 2026 Automated Update <github-actions@github.com> - 0.230.2-1
