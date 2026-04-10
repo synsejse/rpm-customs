@@ -106,6 +106,7 @@ BuildRequires:  pkgconfig(libdrm) >= 2.4.97
 BuildRequires:  pkgconfig(libunwind)
 %endif
 BuildRequires:  pkgconfig(expat)
+BuildRequires:  pkgconfig(libpng)
 BuildRequires:  pkgconfig(zlib) >= 1.2.3
 BuildRequires:  pkgconfig(libzstd)
 BuildRequires:  pkgconfig(libdisplay-info)
