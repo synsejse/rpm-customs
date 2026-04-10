@@ -72,7 +72,7 @@
 %bcond_with valgrind
 %endif
 
-%global with_vulkan_overlay 1
+%global vulkan_layers device-select,anti-lag,screenshot,vram-report-limit,overlay
 %global vulkan_drivers swrast%{?base_vulkan}%{?intel_platform_vulkan}%{?extra_platform_vulkan}%{?with_nvk:,nouveau}
 
 Name:           %{package_name}
@@ -84,11 +84,6 @@ License:        MIT
 URL:            http://www.mesa3d.org
 
 Source0:        %{build_repo}/-/archive/%{commit}.tar.gz#/mesa-%{commit}.tar.gz
-# src/gallium/auxiliary/postprocess/pp_mlaa* have an ... interestingly worded license.
-# Source1 contains email correspondence clarifying the license terms.
-# Fedora opts to ignore the optional part of clause 2 and treat that code as 2 clause BSD.
-Source1:        Mesa-MLAA-License-Clarification-Email.txt
-
 
 # Disable rgb10 configs by default:
 # https://bugzilla.redhat.com/show_bug.cgi?id=1560481
@@ -308,7 +303,6 @@ The drivers with support for the Vulkan API.
 %prep
 %setup -q -c
 %autosetup -n mesa-%{commit} -p1
-cp %{SOURCE1} docs/
 
 %build
 # ensure standard Rust compiler flags are set
@@ -355,11 +349,12 @@ export MESON_PACKAGE_CACHE_DIR="%{cargo_registry}/"
 %else
   -Dgallium-drivers=llvmpipe,softpipe,virgl \
 %endif
+  -Dgallium-extra-hud=true \
   -Dgallium-mediafoundation=disabled \
   -Dgallium-va=%{?with_va:enabled}%{!?with_va:disabled} \
   -Dgallium-rusticl=%{?with_opencl:true}%{!?with_opencl:false} \
   -Dvulkan-drivers=%{?vulkan_drivers} \
-  -Dvulkan-layers=device-select%{?with_vulkan_overlay:,overlay} \
+  -Dvulkan-layers=%{?vulkan_layers} \
   -Dgles1=enabled \
   -Dgles2=enabled \
   -Dopengl=true \
@@ -408,7 +403,6 @@ done
 popd
 
 %files filesystem
-%doc docs/Mesa-MLAA-License-Clarification-Email.txt
 %dir %{_libdir}/dri
 %if 0%{?with_hardware}
 
@@ -570,13 +564,10 @@ popd
 %files vulkan-drivers
 %{_libdir}/libvulkan_lvp.so
 %{_datadir}/vulkan/icd.d/lvp_icd.*.json
-%if 0%{?with_vulkan_overlay}
-%{_bindir}/mesa-overlay-control.py
-%{_libdir}/libVkLayer_MESA_overlay.so
-%{_datadir}/vulkan/explicit_layer.d/VkLayer_MESA_overlay.json
-%endif
-%{_libdir}/libVkLayer_MESA_device_select.so
-%{_datadir}/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+%{_bindir}/mesa-*-control.py
+%{_libdir}/libVkLayer_MESA_*.so
+%{_datadir}/vulkan/explicit_layer.d/VkLayer_MESA_*.json
+%{_datadir}/vulkan/implicit_layer.d/VkLayer_MESA_*.json
 
 %if 0%{?with_vulkan_hw}
 %{_libdir}/libvulkan_radeon.so
@@ -605,6 +596,10 @@ popd
 %endif
 
 %changelog
+* Fri Apr 10 2026 Kristián Kekeš <gamerix2006@gmail.com>
+  Enable gallium-extra-hud and additional Mesa Vulkan utility layers
+  based on current CachyOS PKGBUILD defaults
+
 * Wed Sep 17 2025 Mihai Vultur <xanto@egaming.ro>
   Disable compiling of ARM specific drivers in x86_64 builds
 
