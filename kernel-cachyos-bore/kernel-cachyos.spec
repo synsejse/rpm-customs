@@ -21,31 +21,18 @@
 
 %define _tag cachyos-%{_tarkver}-%{_tagrel}
 
-# Build a minimal a kernel via modprobed.db
-# file to reduce build times
-%define _build_minimal 0
-
-# Builds nvidia-open kernel modules with
-# the kernel
+# Build bundled nvidia-open kernel modules.
 %define _build_nv 1
 %define _nv_ver 595.58.03
 %define _nv_pkg NVIDIA-kernel-module-source-%{_nv_ver}
 
-# Define the tickrate used by the kernel
-# Valid values: 100, 250, 300, 500, 600, 750 and 1000
-# An invalid value will not fail and continue to use
-# 1000Hz tickrate
+# Default tickrate.
 %define _hz_tick 1000
 
-# Defines the x86_64 ISA level used
-# to compile the kernel
-# Valid values are 1-4
-# An invalid value will continue and use
-# x86_64_v3
+# Default x86_64 ISA level.
 %define _x86_64_lvl 3
 
-# Define variables for directory paths
-# to be used during packaging
+# Packaging paths.
 %define _kernel_dir /lib/modules/%{_kver}
 %define _devel_dir %{_usrsrc}/kernels/%{_kver}
 
@@ -63,9 +50,9 @@ URL:            https://cachyos.org
 Requires:       kernel-core-uname-r = %{_kver}
 Requires:       kernel-modules-uname-r = %{_kver}
 Requires:       kernel-modules-core-uname-r = %{_kver}
-Provides:       kernel-cachyos > 6.12.9-cb1.0%{?dist}
+Provides:       kernel-cachyos = %{_rpmver}
 Provides:       installonlypkg(kernel)
-Obsoletes:      kernel-cachyos <= 6.12.9-cb1.0%{?dist}
+Obsoletes:      kernel-cachyos < %{_rpmver}
 
 BuildRequires:  bc
 BuildRequires:  bison
@@ -89,16 +76,8 @@ BuildRequires:  python-srpm-macros
 BuildRequires:  gcc-c++
 %endif
 
-# Indexes 0-9 are reserved for the kernel. 10-19 will be reserved for NVIDIA
 Source0:        https://github.com/CachyOS/linux/archive/refs/tags/%{_tag}.tar.gz
 Source1:        https://raw.githubusercontent.com/CachyOS/linux-cachyos/master/linux-cachyos/config
-
-%if %{_build_minimal}
-# The default modprobed.db provided is used for linux-cachyos CI.
-# This should not be used for production and ideally should only be used for compile tests.
-# Note that any modprobed.db file is accepted
-Source2:        https://raw.githubusercontent.com/Frogging-Family/linux-tkg/master/linux-tkg-config/%{_basekver}/minimal-modprobed.db
-%endif
 
 %if %{_build_nv}
 Source10:       https://download.nvidia.com/XFree86/NVIDIA-kernel-module-source/%{_nv_pkg}.tar.xz
@@ -119,16 +98,13 @@ Patch10:        %{_patch_src}/misc/nvidia/0002-Add-IBT-support.patch
 
     cp %{SOURCE1} .config
 
-    # Default configs to always enable
-    # Enable CACHY sauce and the scheduler
-    # used in the default linux-cachyos kernel
+    # Match the default CachyOS bore config.
     scripts/config -e CACHY -e SCHED_BORE
 
-    # Use SElinux by default
-    # https://github.com/sirlucjan/copr-linux-cachyos/pull/1
+    # Enable SELinux in the LSM order by default.
     scripts/config --set-str CONFIG_LSM lockdown,yama,integrity,selinux,bpf,landlock
 
-    # Do not change the system's hostname
+    # Do not change the system hostname.
     scripts/config -u DEFAULT_HOSTNAME
 
     case %{_hz_tick} in
@@ -146,18 +122,14 @@ Patch10:        %{_patch_src}/misc/nvidia/0002-Add-IBT-support.patch
         scripts/config --set-val X86_64_VERSION 3
     %endif
 
-    # Enable Secure boot support
+    # Enable secure boot support.
     scripts/config -e CONFIG_IMA_SECURE_AND_OR_TRUSTED_BOOT
     scripts/config -e CONFIG_IMA
     scripts/config -e CONFIG_IMA_APPRAISE_BOOTPARAM
     scripts/config -e CONFIG_IMA_APPRAISE
     scripts/config -e CONFIG_IMA_ARCH_POLICY
 
-    %if %{_build_minimal}
-        %make_build LSMOD=%{SOURCE2} localmodconfig
-    %else
-        %make_build olddefconfig
-    %endif
+    %make_build olddefconfig
 
     diff -u %{SOURCE1} .config || :
 
@@ -263,7 +235,7 @@ cd %{_builddir}/linux-%{_tag}
     cp -a --parents tools/arch/x86/tools/gen-insn-attr-x86.awk %{buildroot}%{_devel_dir}
     cp -a --parents tools/objtool/arch/x86/ %{buildroot}%{_devel_dir}
 
-    # Final cleanups ala Fedora
+    # Final Fedora-style cleanup.
     echo "Cleaning up development files..."
     find %{buildroot}%{_devel_dir}/scripts \( -iname "*.o" -o -iname "*.cmd" \) -exec rm -f {} +
     find %{buildroot}%{_devel_dir}/tools \( -iname "*.o" -o -iname "*.cmd" \) -exec rm -f {} +
@@ -271,17 +243,12 @@ cd %{_builddir}/linux-%{_tag}
         %{buildroot}%{_devel_dir}/include/generated/uapi/linux/version.h \
         %{buildroot}%{_devel_dir}/include/config/auto.conf
 
-    # These links will be owned by the modules package, creating a broken
-    # link unless the -devel package is installed. why??
+    # The modules package owns these links.
     rm -rf %{buildroot}%{_kernel_dir}/build
     ln -s %{_devel_dir} %{buildroot}%{_kernel_dir}/build
     ln -s %{_kernel_dir}/build %{buildroot}%{_kernel_dir}/source
 
-    # Create stub initramfs to inflate disk space requirements.
-    # This should hopefully prevent some initramfs failures due to
-    # insufficient space in /boot (#bz #530778)
-    # 90 seems to be a safe value nowadays. It is slightly inflated than the
-    # measured average to also account for installed vmlinuz in /boot
+    # Create a stub initramfs to reserve boot space.
     echo "Creating stub initramfs..."
     install -dm755 %{buildroot}/boot
     dd if=/dev/zero of=%{buildroot}/boot/initramfs-%{_kver}.img bs=1M count=90
