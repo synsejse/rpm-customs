@@ -162,9 +162,9 @@ Patch10:        %{_patch_src}/misc/nvidia/0002-Add-IBT-support.patch
     diff -u %{SOURCE1} .config || :
 
 %if %{_build_nv}
-cd %{_builddir}/%{_nv_pkg}/kernel-open
+cd %{_builddir}/%{_nv_pkg}
 %patch -P 10 -p1
-cd ..
+cd %{_builddir}/linux-%{_tag}
 %endif
 
 %build
