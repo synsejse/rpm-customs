@@ -4,7 +4,7 @@
 %define _default_patch_fuzz 2
 %define _disable_source_fetch 0
 %define debug_package %{nil}
-%define make_build make %{?_lto_args} %{?_smp_mflags}
+%define make_build make %{?_smp_mflags}
 %undefine __brp_mangle_shebangs
 %undefine _auto_set_build_flags
 %undefine _include_frame_pointers
@@ -25,24 +25,11 @@
 # file to reduce build times
 %define _build_minimal 0
 
-# Builds the kernel with clang and enables
-# ThinLTO
-%define _build_lto 0
-
 # Builds nvidia-open kernel modules with
 # the kernel
-%define _nv_pkg open-gpu-kernel-modules-%{_nv_ver}
-%if 0%{?fedora} >= 43
-    %define _build_nv 1
-    %define _nv_ver 595.58.03
-%elif 0%{?rhel}
-    %define _build_nv 1
-    %define _nv_ver 595.58.03
-%else
-    %define _build_nv 1
-    %define _nv_ver 595.58.03
-    %define _nv_old 1
-%endif
+%define _build_nv 1
+%define _nv_ver 595.58.03
+%define _nv_pkg NVIDIA-kernel-module-source-%{_nv_ver}
 
 # Define the tickrate used by the kernel
 # Valid values: 100, 250, 300, 500, 600, 750 and 1000
@@ -64,26 +51,21 @@
 
 %define _patch_src https://raw.githubusercontent.com/CachyOS/kernel-patches/master/%{_basekver}
 
-%if %{_build_lto}
-    # Define build environment variables to build the kernel with clang
-    %define _lto_args CC=clang CXX=clang++ LD=ld.lld LLVM=1 LLVM_IAS=1
-%endif
-
 %define _module_args KERNEL_UNAME=%{_kver} IGNORE_PREEMPT_RT_PRESENCE=1 SYSSRC=%{_builddir}/linux-%{_tag} SYSOUT=%{_builddir}/linux-%{_tag}
 
-Name:           kernel-cachyos%{?_lto_args:-lto}
-Summary:        Linux BORE %{?_lto_args:+ LTO }Cachy Sauce Kernel by CachyOS with other patches and improvements.
+Name:           kernel-cachyos
+Summary:        Linux BORE Cachy Sauce Kernel by CachyOS with other patches and improvements.
 Version:        %{_basekver}.%{_stablekver}
-Release:        cachyos%{_tagrel}%{?_lto_args:.lto}%{?dist}
+Release:        cachyos%{_tagrel}%{?dist}
 License:        GPL-2.0-only
 URL:            https://cachyos.org
 
 Requires:       kernel-core-uname-r = %{_kver}
 Requires:       kernel-modules-uname-r = %{_kver}
 Requires:       kernel-modules-core-uname-r = %{_kver}
-Provides:       kernel-cachyos%{?_lto_args:-lto} > 6.12.9-cb1.0%{?_lto_args:.lto}%{?dist}
+Provides:       kernel-cachyos > 6.12.9-cb1.0%{?dist}
 Provides:       installonlypkg(kernel)
-Obsoletes:      kernel-cachyos%{?_lto_args:-lto} <= 6.12.9-cb1.0.lto%{?_lto_args:.lto}%{?dist}
+Obsoletes:      kernel-cachyos <= 6.12.9-cb1.0%{?dist}
 
 BuildRequires:  bc
 BuildRequires:  bison
@@ -103,10 +85,6 @@ BuildRequires:  perl-interpreter
 BuildRequires:  python3-devel
 BuildRequires:  python3-pyyaml
 BuildRequires:  python-srpm-macros
-BuildRequires:  clang
-BuildRequires:  lld
-BuildRequires:  llvm
-
 %if %{_build_nv}
 BuildRequires:  gcc-c++
 %endif
@@ -123,21 +101,13 @@ Source2:        https://raw.githubusercontent.com/Frogging-Family/linux-tkg/mast
 %endif
 
 %if %{_build_nv}
-Source10:       https://github.com/NVIDIA/open-gpu-kernel-modules/archive/%{_nv_ver}/%{_nv_pkg}.tar.gz
+Source10:       https://download.nvidia.com/XFree86/NVIDIA-kernel-module-source/%{_nv_pkg}.tar.xz
 %endif
 
 Patch0:         %{_patch_src}/sched/0001-bore-cachy.patch
 
-%if %{_build_lto}
-Patch1:         %{_patch_src}/misc/dkms-clang.patch
-%endif
-
-%if ! %{_build_lto} && 0%{?rhel} == 9
-Patch2:         https://raw.githubusercontent.com/CachyOS/copr-linux-cachyos/refs/heads/master/sources/patches/kernel-el9-ar-thin.patch
-%endif
-
 %if %{_build_nv}
-Patch10:        %{_patch_src}/misc/nvidia/0001-Enable-atomic-kernel-modesetting-by-default.patch
+Patch10:        %{_patch_src}/misc/nvidia/0002-Add-IBT-support.patch
 %endif
 
 %description
@@ -183,10 +153,6 @@ Patch10:        %{_patch_src}/misc/nvidia/0001-Enable-atomic-kernel-modesetting-
     scripts/config -e CONFIG_IMA_APPRAISE
     scripts/config -e CONFIG_IMA_ARCH_POLICY
 
-    %if %{_build_lto}
-        scripts/config -e LTO_CLANG_THIN
-    %endif
-
     %if %{_build_minimal}
         %make_build LSMOD=%{SOURCE2} localmodconfig
     %else
@@ -199,7 +165,6 @@ Patch10:        %{_patch_src}/misc/nvidia/0001-Enable-atomic-kernel-modesetting-
 cd %{_builddir}/%{_nv_pkg}/kernel-open
 %patch -P 10 -p1
 cd ..
-%autopatch -p1 -v -m 11 -M 19
 %endif
 
 %build
@@ -438,14 +403,7 @@ Requires:       elfutils-libelf-devel
 Requires:       bison
 Requires:       flex
 Requires:       make
-
-%if %{_build_lto}
-Requires:       clang
-Requires:       lld
-Requires:       llvm
-%else
 Requires:       gcc
-%endif
 
 %description devel
     This package provides kernel headers and makefiles sufficient to build modules against %{name}.
@@ -497,3 +455,9 @@ Recommends:     xorg-x11-drv-nvidia >= %{_nv_ver}
 %endif
 
 %files
+
+%changelog
+* Sat Apr 11 2026 Kristián Kekeš <gamerix2006@gmail.com> - 6.19.12-cachyos2
+- Update to CachyOS 6.19.12-2
+- Enable bundled nvidia-open module builds
+- Simplify the spec for Fedora 43+ gcc-only builds
