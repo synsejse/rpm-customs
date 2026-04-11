@@ -11,7 +11,7 @@
 
 # Linux Kernel Versions
 %define _basekver 6.19
-%define _stablekver 11
+%define _stablekver 12
 %define _tagrel 2
 %define _rpmver %{version}-%{release}
 %define _kver %{_rpmver}.%{_arch}
@@ -33,13 +33,14 @@
 # the kernel
 %define _nv_pkg open-gpu-kernel-modules-%{_nv_ver}
 %if 0%{?fedora} >= 43
-    %define _build_nv 0
-    %define _nv_ver 580.119.02
+    %define _build_nv 1
+    %define _nv_ver 595.58.03
 %elif 0%{?rhel}
-    %define _build_nv 0
+    %define _build_nv 1
+    %define _nv_ver 595.58.03
 %else
-    %define _build_nv 0
-    %define _nv_ver 580.119.02
+    %define _build_nv 1
+    %define _nv_ver 595.58.03
     %define _nv_old 1
 %endif
 
