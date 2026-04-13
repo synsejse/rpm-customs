@@ -18,14 +18,27 @@ jobs:
       # ============================================
       # Zed
       # ============================================
-      - name: Check for new Zed version
+      - name: Check for new Zed prerelease
         id: check_zed
         run: |
-          CURRENT_VERSION=$(grep -oP '^Version:\s*\K[0-9.]+' zed/zed.spec)
-          LATEST_VERSION=$(curl -s https://api.github.com/repos/zed-industries/zed/releases/latest | jq -r '.tag_name' | sed 's/^v//')
-          echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-          echo "latest=$LATEST_VERSION" >> $GITHUB_OUTPUT
-          if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ]; then
+          CURRENT_VERSION=$(grep -oP '^%global upstream_version\s+\K[0-9.]+' zed/zed.spec)
+          CURRENT_PRERELEASE=$(grep -oP '^%global prerelease\s+\K\S+' zed/zed.spec)
+          TAG_NAME=$(curl -fsSL https://api.github.com/repos/zed-industries/zed/releases | jq -r '[.[] | select(.prerelease == true)][0].tag_name')
+          if [ -z "$TAG_NAME" ] || [ "$TAG_NAME" = "null" ]; then
+            echo "Failed to determine latest Zed prerelease tag"
+            exit 1
+          fi
+          LATEST_VERSION=$(echo "$TAG_NAME" | sed -E 's/^v([0-9.]+)-([A-Za-z0-9._-]+)$/\1/')
+          LATEST_PRERELEASE=$(echo "$TAG_NAME" | sed -E 's/^v([0-9.]+)-([A-Za-z0-9._-]+)$/\2/')
+          if [ "$LATEST_VERSION" = "$TAG_NAME" ] || [ "$LATEST_PRERELEASE" = "$TAG_NAME" ]; then
+            echo "Unexpected Zed tag format: $TAG_NAME"
+            exit 1
+          fi
+          echo "current=$CURRENT_VERSION-$CURRENT_PRERELEASE" >> $GITHUB_OUTPUT
+          echo "latest=$LATEST_VERSION-$LATEST_PRERELEASE" >> $GITHUB_OUTPUT
+          echo "latest_version=$LATEST_VERSION" >> $GITHUB_OUTPUT
+          echo "latest_prerelease=$LATEST_PRERELEASE" >> $GITHUB_OUTPUT
+          if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ] || [ "$CURRENT_PRERELEASE" != "$LATEST_PRERELEASE" ]; then
             echo "update_needed=true" >> $GITHUB_OUTPUT
           else
             echo "update_needed=false" >> $GITHUB_OUTPUT
@@ -34,11 +47,13 @@ jobs:
       - name: Update Zed spec
         if: steps.check_zed.outputs.update_needed == 'true'
         run: |
-          LATEST_VERSION="${{ steps.check_zed.outputs.latest }}"
-          sed -i "s/^Version:\s*.*/Version:        $LATEST_VERSION/" zed/zed.spec
+          LATEST_VERSION="${{ steps.check_zed.outputs.latest_version }}"
+          LATEST_PRERELEASE="${{ steps.check_zed.outputs.latest_prerelease }}"
+          sed -i "s/^%global upstream_version .*/%global upstream_version $LATEST_VERSION/" zed/zed.spec
+          sed -i "s/^%global prerelease\s\+.*/%global prerelease     $LATEST_PRERELEASE/" zed/zed.spec
           CURRENT_DATE=$(date '+%a %b %d %Y')
-          CHANGELOG_ENTRY="* $CURRENT_DATE Automated Update <github-actions@github.com> - $LATEST_VERSION-1"
-          sed -i "/^%changelog/a $CHANGELOG_ENTRY\n- Update to version $LATEST_VERSION" zed/zed.spec
+          CHANGELOG_ENTRY="* $CURRENT_DATE Automated Update <github-actions@github.com> - ${LATEST_VERSION}~${LATEST_PRERELEASE}-1"
+          sed -i "/^%changelog/a $CHANGELOG_ENTRY\n- Update to prerelease ${LATEST_VERSION}-${LATEST_PRERELEASE}" zed/zed.spec
 
       - name: Commit Zed changes
         if: steps.check_zed.outputs.update_needed == 'true'
@@ -46,7 +61,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add zed/zed.spec
-          git commit -m "chore(zed): update to version ${{ steps.check_zed.outputs.latest }}"
+          git commit -m "chore(zed): update to prerelease ${{ steps.check_zed.outputs.latest }}"
 
       # ============================================
       # AmneziaWG DKMS
