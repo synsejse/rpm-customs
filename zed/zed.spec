@@ -3,6 +3,7 @@
 %global appid          dev.zed.Zed-Preview
 %global appdir         %{_libdir}/%{name}
 %global bundledir      %{appdir}/zed-preview.app
+%global debug_package  %{nil}
 
 Name:           zed
 Version:        %{upstream_version}~%{prerelease}
@@ -32,10 +33,11 @@ tar -xzf %{SOURCE0}
 %install
 install -dm0755 %{buildroot}%{appdir}
 cp -a zed-preview.app %{buildroot}%{appdir}/
+chmod 0644 %{buildroot}%{bundledir}/share/applications/%{appid}.desktop
 
 install -dm0755 %{buildroot}%{_bindir}
-ln -s %{bundledir}/bin/zed %{buildroot}%{_bindir}/zed
-ln -s %{bundledir}/bin/zed %{buildroot}%{_bindir}/zeditor
+ln -s ../lib64/zed/zed-preview.app/bin/zed %{buildroot}%{_bindir}/zed
+ln -s ../lib64/zed/zed-preview.app/bin/zed %{buildroot}%{_bindir}/zeditor
 
 install -dm0755 %{buildroot}%{_datadir}/applications
 install -dm0755 %{buildroot}%{_datadir}/icons/hicolor/512x512/apps
@@ -51,6 +53,7 @@ install -m0644 zed-preview.app/share/icons/hicolor/1024x1024/apps/zed.png \
 %license %{bundledir}/licenses.md
 %{_bindir}/zed
 %{_bindir}/zeditor
+%exclude %{bundledir}/licenses.md
 %{appdir}
 %{_datadir}/applications/%{appid}.desktop
 %{_datadir}/icons/hicolor/512x512/apps/zed.png
