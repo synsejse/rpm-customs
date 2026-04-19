@@ -10,8 +10,8 @@
 %undefine _include_frame_pointers
 
 # Linux Kernel Versions
-%define _basekver 6.19
-%define _stablekver 12
+%define _basekver 7.0
+%define _stablekver 0
 %define _tagrel 2
 %define _rpmver %{version}-%{release}
 %define _kver %{_rpmver}.%{_arch}
@@ -41,7 +41,7 @@
 %define _module_args KERNEL_UNAME=%{_kver} IGNORE_PREEMPT_RT_PRESENCE=1 SYSSRC=%{_builddir}/linux-%{_tag} SYSOUT=%{_builddir}/linux-%{_tag}
 
 Name:           kernel-cachyos
-Summary:        Linux BORE Cachy Sauce Kernel by CachyOS with other patches and improvements.
+Summary:        Linux Cachy Sauce Kernel by CachyOS with other patches and improvements.
 Version:        %{_basekver}.%{_stablekver}
 Release:        cachyos%{_tagrel}%{?dist}
 License:        GPL-2.0-only
@@ -87,6 +87,10 @@ Patch0:         %{_patch_src}/sched/0001-bore-cachy.patch
 
 %if %{_build_nv}
 Patch10:        %{_patch_src}/misc/nvidia/0002-Add-IBT-support.patch
+Patch11:        %{_patch_src}/misc/nvidia/0004-HACK-kernel-open-Makefile-Remove-PAHOLE_VARIABLE.patch
+Patch12:        %{_patch_src}/misc/nvidia/0003-fix-dsc-correct-RC-parameter-tables-to-match-VESA-DS.patch
+Patch13:        %{_patch_src}/misc/nvidia/0004-fix-dsc-use-bits_per_component-for-flatnessDetThresh.patch
+Patch14:        %{_patch_src}/misc/nvidia/0005-fix-dp-add-Bigscreen-Beyond-VR-headset-to-WAR-databa.patch
 %endif
 
 %description
@@ -98,7 +102,7 @@ Patch10:        %{_patch_src}/misc/nvidia/0002-Add-IBT-support.patch
 
     cp %{SOURCE1} .config
 
-    # Match the default CachyOS bore config.
+    # Match the default CachyOS config.
     scripts/config -e CACHY -e SCHED_BORE
 
     # Enable SELinux in the LSM order by default.
@@ -136,6 +140,10 @@ Patch10:        %{_patch_src}/misc/nvidia/0002-Add-IBT-support.patch
 %if %{_build_nv}
 cd %{_builddir}/%{_nv_pkg}
 %patch -P 10 -p1
+%patch -P 11 -p1
+%patch -P 12 -p1
+%patch -P 13 -p1
+%patch -P 14 -p1
 cd %{_builddir}/linux-%{_tag}
 %endif
 
@@ -262,7 +270,7 @@ cd %{_builddir}/linux-%{_tag}
     %endif
 
 %package core
-Summary:        Linux BORE Cachy Sauce Kernel by CachyOS with other patches and improvements
+Summary:        Linux Cachy Sauce Kernel by CachyOS with other patches and improvements
 AutoReq:        no
 Conflicts:      xfsprogs < 4.3.0-1
 Conflicts:      xorg-x11-drv-vmmouse < 13.0.99
@@ -424,6 +432,9 @@ Recommends:     xorg-x11-drv-nvidia >= %{_nv_ver}
 %files
 
 %changelog
+* Sun Apr 19 2026 Kristián Kekeš <gamerix2006@gmail.com> - 7.0.0-cachyos2
+- Update to CachyOS 7.0.0-2
+- Switch to the default CachyOS kernel packaging
 * Sat Apr 11 2026 Kristián Kekeš <gamerix2006@gmail.com> - 6.19.12-cachyos2
 - Update to CachyOS 6.19.12-2
 - Enable bundled nvidia-open module builds
