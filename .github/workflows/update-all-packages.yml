@@ -64,6 +64,43 @@ jobs:
           git commit -m "chore(zed): update to prerelease ${{ steps.check_zed.outputs.latest }}"
 
       # ============================================
+      # Cinny Desktop
+      # ============================================
+      - name: Check for new Cinny Desktop version
+        id: check_cinny
+        run: |
+          CURRENT_VERSION=$(grep -oP '^Version:\s*\K[0-9.]+' cinny-desktop/cinny-desktop.spec)
+          LATEST_VERSION=$(curl -fsSL https://api.github.com/repos/cinnyapp/cinny-desktop/releases/latest | jq -r '.tag_name' | sed 's/^v//')
+          if [ -z "$LATEST_VERSION" ] || [ "$LATEST_VERSION" = "null" ]; then
+            echo "Failed to determine latest Cinny Desktop release"
+            exit 1
+          fi
+          echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "latest=$LATEST_VERSION" >> $GITHUB_OUTPUT
+          if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ]; then
+            echo "update_needed=true" >> $GITHUB_OUTPUT
+          else
+            echo "update_needed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update Cinny Desktop spec
+        if: steps.check_cinny.outputs.update_needed == 'true'
+        run: |
+          LATEST_VERSION="${{ steps.check_cinny.outputs.latest }}"
+          sed -i "s/^Version:\s*.*/Version:        $LATEST_VERSION/" cinny-desktop/cinny-desktop.spec
+          CURRENT_DATE=$(date '+%a %b %d %Y')
+          CHANGELOG_ENTRY="* $CURRENT_DATE Automated Update <github-actions@github.com> - $LATEST_VERSION-1"
+          sed -i "/^%changelog/a $CHANGELOG_ENTRY\n- Update to version $LATEST_VERSION" cinny-desktop/cinny-desktop.spec
+
+      - name: Commit Cinny Desktop changes
+        if: steps.check_cinny.outputs.update_needed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add cinny-desktop/cinny-desktop.spec
+          git commit -m "chore(cinny-desktop): update to version ${{ steps.check_cinny.outputs.latest }}"
+
+      # ============================================
       # AmneziaWG DKMS
       # ============================================
       - name: Check for new AmneziaWG DKMS version
