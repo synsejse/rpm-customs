@@ -187,14 +187,23 @@ jobs:
         id: check_mesa
         run: |
           CURRENT_COMMIT=$(grep -oP '^%define commit \K[a-f0-9]+' mesa-git/mesa.spec)
+          CURRENT_VERSION=$(grep -oP '^%define version_string \K[0-9.]+' mesa-git/mesa.spec)
           LATEST_COMMIT=$(curl -s "https://gitlab.freedesktop.org/api/v4/projects/mesa%2Fmesa/repository/commits" | jq -r '.[0].id')
           LATEST_SHORT=$(echo $LATEST_COMMIT | cut -c1-7)
           COMMIT_DATE=$(date '+%Y%m%d.%H')
-          echo "current=$CURRENT_COMMIT" >> $GITHUB_OUTPUT
+          # Fetch the VERSION file at the latest commit to get the real upstream version
+          LATEST_VERSION=$(curl -s "https://gitlab.freedesktop.org/api/v4/projects/mesa%2Fmesa/repository/files/VERSION/raw?ref=${LATEST_COMMIT}" | tr -d '[:space:]' | sed 's/-devel//')
+          if [ -z "$LATEST_VERSION" ] || [ -z "$LATEST_COMMIT" ]; then
+            echo "Failed to fetch Mesa version info"
+            exit 1
+          fi
+          echo "current_commit=$CURRENT_COMMIT" >> $GITHUB_OUTPUT
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
           echo "latest=$LATEST_COMMIT" >> $GITHUB_OUTPUT
           echo "short=$LATEST_SHORT" >> $GITHUB_OUTPUT
           echo "date=$COMMIT_DATE" >> $GITHUB_OUTPUT
-          if [ "$CURRENT_COMMIT" != "$LATEST_COMMIT" ]; then
+          echo "latest_version=$LATEST_VERSION" >> $GITHUB_OUTPUT
+          if [ "$CURRENT_COMMIT" != "$LATEST_COMMIT" ] || [ "$CURRENT_VERSION" != "$LATEST_VERSION" ]; then
             echo "update_needed=true" >> $GITHUB_OUTPUT
           else
             echo "update_needed=false" >> $GITHUB_OUTPUT
@@ -206,8 +215,10 @@ jobs:
           COMMIT="${{ steps.check_mesa.outputs.latest }}"
           SHORT="${{ steps.check_mesa.outputs.short }}"
           DATE="${{ steps.check_mesa.outputs.date }}"
+          LATEST_VERSION="${{ steps.check_mesa.outputs.latest_version }}"
           sed -i "s/^%define commit .*/%define commit $COMMIT/" mesa-git/mesa.spec
           sed -i "s/^%global commit_date .*/%global commit_date $DATE/" mesa-git/mesa.spec
+          sed -i "s/^%define version_string .*/%define version_string $LATEST_VERSION/" mesa-git/mesa.spec
           CURRENT_RELEASE=$(grep -oP '^Release:\s+0\.\K[0-9]+' mesa-git/mesa.spec)
           NEW_RELEASE=$((CURRENT_RELEASE + 1))
           sed -i "s/^Release:\s\+0\.[0-9]\+%/Release:        0.$NEW_RELEASE%/" mesa-git/mesa.spec
@@ -218,7 +229,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add mesa-git/mesa.spec
-          git commit -m "chore(mesa-git): update to commit ${{ steps.check_mesa.outputs.short }}"
+          git commit -m "chore(mesa-git): update to ${{ steps.check_mesa.outputs.latest_version }} commit ${{ steps.check_mesa.outputs.short }}"
 
       # ============================================
       # Push all changes at once
