@@ -5,12 +5,12 @@
 #global __meson_auto_features disabled
 
 %global build_repo https://gitlab.freedesktop.org/mesa/mesa
-%define version_string 26.1.0
+%define version_string 26.2.0
 %global version_major %(ver=%{version_string}; echo ${ver%.*.*})
 
-%define commit bddd8b36a6d522d9f7597df0fa5512a1608c73d6
+%define commit 12f81eaa88d5422219e78b4ed34eee9fd3451eb2
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
-%global commit_date 20260421.13
+%global commit_date 20260422.05
 %global gitrel .%{commit_date}.%{shortcommit}
 
 %global hw_video_codecs_free vc1dec,av1dec,av1enc,vp9dec
@@ -78,7 +78,7 @@
 Name:           %{package_name}
 Summary:        Mesa 3D Graphics Library, git version
 Version:        %{version_string}
-Release:        0.32%{?gitrel}%{?dist}
+Release:        0.33%{?gitrel}%{?dist}
 
 License:        MIT
 URL:            http://www.mesa3d.org
