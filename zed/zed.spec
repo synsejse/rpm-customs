@@ -1,4 +1,4 @@
-%global upstream_version 0.234.5
+%global upstream_version 0.234.6
 %global prerelease     pre
 %global appid          dev.zed.Zed-Preview
 %global appdir         %{_libdir}/%{name}
@@ -60,6 +60,8 @@ install -m0644 zed-preview.app/share/icons/hicolor/1024x1024/apps/zed.png \
 %{_datadir}/icons/hicolor/1024x1024/apps/zed.png
 
 %changelog
+* Sat Apr 25 2026 Automated Update <github-actions@github.com> - 0.234.6~pre-1
+- Update to prerelease 0.234.6-pre
 * Fri Apr 24 2026 Automated Update <github-actions@github.com> - 0.234.5~pre-1
 - Update to prerelease 0.234.5-pre
 * Thu Apr 23 2026 Automated Update <github-actions@github.com> - 0.234.3~pre-1
