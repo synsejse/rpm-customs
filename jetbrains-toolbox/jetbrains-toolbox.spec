@@ -11,7 +11,7 @@ URL:            https://www.jetbrains.com/toolbox/
 Source0:        https://download.jetbrains.com/toolbox/%{name}-%{version}.tar.gz
 Source1:        %{name}.desktop
 Source2:        icon.svg
-Source3:        https://aur.archlinux.org/cgit/aur.git/plain/LICENSE?h=jetbrains-toolbox
+Source3:        LICENSE
 
 ExclusiveArch:  x86_64
 
