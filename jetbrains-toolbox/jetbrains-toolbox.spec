@@ -16,7 +16,6 @@ Source3:        LICENSE
 ExclusiveArch:  x86_64
 
 Requires:       xdg-utils
-Recommends:     gnome-keyring
 
 %description
 JetBrains Toolbox helps you install, manage, and update JetBrains IDEs and
