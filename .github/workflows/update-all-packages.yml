@@ -101,6 +101,43 @@ jobs:
           git commit -m "chore(cinny-desktop): update to version ${{ steps.check_cinny.outputs.latest }}"
 
       # ============================================
+      # JetBrains Toolbox
+      # ============================================
+      - name: Check for new JetBrains Toolbox version
+        id: check_jetbrains_toolbox
+        run: |
+          CURRENT_VERSION=$(grep -oP '^Version:\s*\K[0-9.]+' jetbrains-toolbox/jetbrains-toolbox.spec)
+          LATEST_VERSION=$(curl -fsSL 'https://data.services.jetbrains.com/products/releases?code=TBA&latest=true&type=release' | jq -r '.TBA[0].build')
+          if [ -z "$LATEST_VERSION" ] || [ "$LATEST_VERSION" = "null" ]; then
+            echo "Failed to determine latest JetBrains Toolbox version"
+            exit 1
+          fi
+          echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "latest=$LATEST_VERSION" >> $GITHUB_OUTPUT
+          if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ]; then
+            echo "update_needed=true" >> $GITHUB_OUTPUT
+          else
+            echo "update_needed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update JetBrains Toolbox spec
+        if: steps.check_jetbrains_toolbox.outputs.update_needed == 'true'
+        run: |
+          LATEST_VERSION="${{ steps.check_jetbrains_toolbox.outputs.latest }}"
+          sed -i "s/^Version:\s*.*/Version:        $LATEST_VERSION/" jetbrains-toolbox/jetbrains-toolbox.spec
+          CURRENT_DATE=$(date '+%a %b %d %Y')
+          CHANGELOG_ENTRY="* $CURRENT_DATE Automated Update <github-actions@github.com> - $LATEST_VERSION-1"
+          sed -i "/^%changelog/a $CHANGELOG_ENTRY\n- Update to version $LATEST_VERSION" jetbrains-toolbox/jetbrains-toolbox.spec
+
+      - name: Commit JetBrains Toolbox changes
+        if: steps.check_jetbrains_toolbox.outputs.update_needed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add jetbrains-toolbox/jetbrains-toolbox.spec
+          git commit -m "chore(jetbrains-toolbox): update to version ${{ steps.check_jetbrains_toolbox.outputs.latest }}"
+
+      # ============================================
       # AmneziaWG DKMS
       # ============================================
       - name: Check for new AmneziaWG DKMS version

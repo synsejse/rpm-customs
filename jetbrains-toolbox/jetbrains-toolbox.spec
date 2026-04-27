@@ -1,0 +1,53 @@
+%global debug_package %{nil}
+%global appdir /opt/%{name}
+
+Name:           jetbrains-toolbox
+Version:        3.4.3.81140
+Release:        1%{?dist}
+Summary:        Manage all your JetBrains projects and tools
+
+License:        LicenseRef-JetBrains-User-Agreement
+URL:            https://www.jetbrains.com/toolbox/
+Source0:        https://download.jetbrains.com/toolbox/%{name}-%{version}.tar.gz
+Source1:        %{name}.desktop
+Source2:        icon.svg
+Source3:        https://aur.archlinux.org/cgit/aur.git/plain/LICENSE?h=jetbrains-toolbox
+
+ExclusiveArch:  x86_64
+
+Requires:       xdg-utils
+Recommends:     gnome-keyring
+
+%description
+JetBrains Toolbox helps you install, manage, and update JetBrains IDEs and
+related tools from one desktop application.
+
+%prep
+%setup -q -n %{name}-%{version}
+
+%build
+
+%install
+install -dm0755 %{buildroot}%{_bindir}
+install -dm0755 %{buildroot}%{appdir}
+install -dm0755 %{buildroot}%{_datadir}/applications
+install -dm0755 %{buildroot}%{_datadir}/pixmaps
+
+cp -a bin/* %{buildroot}%{appdir}/
+
+install -m0644 %{SOURCE1} %{buildroot}%{_datadir}/applications/%{name}.desktop
+install -m0644 %{SOURCE2} %{buildroot}%{_datadir}/pixmaps/%{name}.svg
+install -Dm0644 %{SOURCE3} %{buildroot}%{_licensedir}/%{name}/LICENSE.txt
+
+ln -s ../../opt/%{name}/%{name} %{buildroot}%{_bindir}/%{name}
+
+%files
+%license %{_licensedir}/%{name}/LICENSE.txt
+%{_bindir}/%{name}
+%{appdir}
+%{_datadir}/applications/%{name}.desktop
+%{_datadir}/pixmaps/%{name}.svg
+
+%changelog
+* Mon Apr 27 2026 Kristián Kekeš <gamerix2006@gmail.com> - 3.4.3.81140-1
+- Initial RPM package from the upstream JetBrains Toolbox binary release
