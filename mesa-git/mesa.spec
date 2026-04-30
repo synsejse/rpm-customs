@@ -1,5 +1,4 @@
 %define package_name mesa
-%global build_branch master
 %bcond_without patented_video_codecs
 %global _default_patch_fuzz 2
 #global __meson_auto_features disabled
@@ -16,64 +15,10 @@
 %global hw_video_codecs_free vc1dec,av1dec,av1enc,vp9dec
 %global hw_video_codecs_patented ,h264dec,h264enc,h265dec,h265enc
 
-%ifnarch s390x
-%global with_hardware 1
-%global with_vulkan_hw 1
-%global with_va 1
-%if !0%{?rhel}
-%global with_nvk %{with vulkan_hw}
-%global with_opencl 1
-%endif
-%global base_vulkan ,amd
-%endif
-
-%ifarch %{ix86} x86_64
-%global with_crocus 1
-%global with_i915   1
-%global with_iris   1
-%global intel_platform_vulkan ,intel,intel_hasvk
-%endif
-
-%ifarch x86_64
-%global with_intel_vk_rt 1
-%endif
-
-%ifarch aarch64
-%if !0%{?rhel}
-%global with_lima      1
-%global with_vc4       1
-%endif
-%global with_etnaviv   1
-%global with_freedreno 1
-%global with_kmsro     1
-%global with_panfrost  1
-%global with_tegra     1
-%global with_v3d       1
-%global extra_platform_vulkan ,broadcom,freedreno,panfrost,imagination-experimental
-%endif
-
-%ifnarch s390x
-%if !0%{?rhel}
-%global with_r300 1
-%global with_r600 1
-%endif
-%global with_radeonsi 1
-%global with_vmware 1
-%endif
-
-%if !0%{?rhel}
-%global with_libunwind 1
-%global with_lmsensors 1
-%endif
-
-%ifarch %{valgrind_arches}
 %bcond_without valgrind
-%else
-%bcond_with valgrind
-%endif
 
 %global vulkan_layers device-select,anti-lag,screenshot,vram-report-limit,overlay
-%global vulkan_drivers swrast%{?base_vulkan}%{?intel_platform_vulkan}%{?extra_platform_vulkan}%{?with_nvk:,nouveau}
+%global vulkan_drivers swrast,amd,intel,intel_hasvk,nouveau
 
 Name:           %{package_name}
 Summary:        Mesa 3D Graphics Library, git version
@@ -82,29 +27,18 @@ Release:        0.40%{?gitrel}%{?dist}
 
 License:        MIT
 URL:            http://www.mesa3d.org
+ExclusiveArch:  x86_64
 
 Source0:        %{build_repo}/-/archive/%{commit}.tar.gz#/mesa-%{commit}.tar.gz
-
-# Disable rgb10 configs by default:
-# https://bugzilla.redhat.com/show_bug.cgi?id=1560481
-#Patch7:         0001-gallium-Disable-rgb10-configs-by-default.patch
-#Patch1:         001-disable-proc_macro2-unstable-features.patch
 
 BuildRequires:  meson >= 1.3.0
 BuildRequires:  cbindgen
 BuildRequires:  gcc
 BuildRequires:  gcc-c++
 BuildRequires:  gettext
-%if 0%{?with_hardware}
 BuildRequires:  kernel-headers
-%endif
-# We only check for the minimum version of pkgconfig(libdrm) needed so that the
-# SRPMs for each arch still have the same build dependencies. See:
-# https://bugzilla.redhat.com/show_bug.cgi?id=1859515
 BuildRequires:  pkgconfig(libdrm) >= 2.4.97
-%if 0%{?with_libunwind}
 BuildRequires:  pkgconfig(libunwind)
-%endif
 BuildRequires:  pkgconfig(expat)
 BuildRequires:  pkgconfig(libpng)
 BuildRequires:  pkgconfig(zlib) >= 1.2.3
@@ -136,16 +70,11 @@ BuildRequires:  pkgconfig(xrandr) >= 1.3
 BuildRequires:  python3-pycparser
 BuildRequires:  bison
 BuildRequires:  flex
-%if 0%{?with_lmsensors}
 BuildRequires:  lm_sensors-devel
-%endif
-%if 0%{?with_va}
 BuildRequires:  pkgconfig(libva) >= 0.38.0
-%endif
 BuildRequires:  pkgconfig(libelf)
 BuildRequires:  pkgconfig(libglvnd) >= 1.3.2
 BuildRequires:  llvm-devel >= 7.0.0
-%if 0%{?with_opencl} || 0%{?with_nvk}
 BuildRequires:  clang-devel
 BuildRequires:  bindgen
 BuildRequires:  rustfmt
@@ -153,15 +82,12 @@ BuildRequires:  rust-packaging
 BuildRequires:  pkgconfig(libclc)
 BuildRequires:  pkgconfig(SPIRV-Tools)
 BuildRequires:  pkgconfig(LLVMSPIRVLib)
-%endif
-%if 0%{?with_nvk}
 BuildRequires:  (crate(paste/default) >= 1.0.0 with crate(paste/default) < 2.0.0~)
 BuildRequires:  (crate(proc-macro2) >= 1.0.56 with crate(proc-macro2) < 2)
 BuildRequires:  (crate(quote) >= 1.0.25 with crate(quote) < 2)
 BuildRequires:  (crate(syn/clone-impls) >= 2.0.15 with crate(syn/clone-impls) < 3)
 BuildRequires:  (crate(unicode-ident) >= 1.0.6 with crate(unicode-ident) < 2)
 BuildRequires:  (crate(rustc-hash) >= 2.0.0 with crate(rustc-hash) < 3)
-%endif
 %if %{with valgrind}
 BuildRequires:  pkgconfig(valgrind)
 %endif
@@ -170,9 +96,7 @@ BuildRequires:  python3-yaml
 BuildRequires:  python3-mako
 BuildRequires:  vulkan-headers
 BuildRequires:  glslang
-%if 0%{?with_vulkan_hw}
 BuildRequires:  pkgconfig(vulkan)
-%endif
 
 
 %description
@@ -235,14 +159,11 @@ Obsoletes:      libOSMesa-devel < %{?epoch:%{epoch}:}%{version}-%{release}
 %package dri-drivers
 Summary:        Mesa-based DRI drivers
 Requires:       %{name}-filesystem%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}
-%if 0%{?with_va}
 Recommends:     %{name}-va-drivers%{?_isa}
-%endif
 
 %description dri-drivers
 %{summary}.
 
-%if 0%{?with_va}
 %package        va-drivers
 Summary:        Mesa-based VA-API video acceleration drivers
 Requires:       %{name}-filesystem%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}
@@ -252,7 +173,6 @@ Provides:       %{name}-vdpau-drivers = %{?epoch:%{epoch}:}%{version}-%{release}
 
 %description va-drivers
 %{summary}.
-%endif
 
 %package libgbm
 Summary:        Mesa gbm runtime library
@@ -272,7 +192,6 @@ Provides:       libgbm-devel%{?_isa}
 %description libgbm-devel
 %{summary}.
 
-%if 0%{?with_opencl}
 %package libOpenCL
 Summary:        Mesa OpenCL runtime library
 Requires:       ocl-icd%{?_isa}
@@ -289,7 +208,6 @@ Requires:       %{name}-libOpenCL%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{rele
 
 %description libOpenCL-devel
 %{summary}.
-%endif
 
 
 %package vulkan-drivers
@@ -309,7 +227,6 @@ The drivers with support for the Vulkan API.
 # ensure standard Rust compiler flags are set
 export RUSTFLAGS="%build_rustflags"
 
-%if 0%{?with_nvk}
 export MESON_PACKAGE_CACHE_DIR="%{cargo_registry}/"
 # So... Meson can't actually find them without tweaks
 
@@ -336,7 +253,6 @@ export MESON_PACKAGE_CACHE_DIR="%{cargo_registry}/"
 %rewrite_wrap_file quote
 %rewrite_wrap_file syn
 %rewrite_wrap_file unicode-ident
-%endif 
 
 # We've gotten a report that enabling LTO for mesa breaks some games. See
 # https://bugzilla.redhat.com/show_bug.cgi?id=1862771 for details.
@@ -345,15 +261,11 @@ export MESON_PACKAGE_CACHE_DIR="%{cargo_registry}/"
 
 %meson \
   -Dplatforms=x11,wayland \
-%if 0%{?with_hardware}
-  -Dgallium-drivers=llvmpipe,softpipe,virgl,nouveau%{?with_r300:,r300}%{?with_crocus:,crocus}%{?with_i915:,i915}%{?with_iris:,iris}%{?with_vmware:,svga}%{?with_radeonsi:,radeonsi}%{?with_r600:,r600}%{?with_freedreno:,freedreno}%{?with_etnaviv:,etnaviv}%{?with_tegra:,tegra}%{?with_vc4:,vc4}%{?with_v3d:,v3d}%{?with_lima:,lima}%{?with_panfrost:,panfrost}%{?with_vulkan_hw:,zink} \
-%else
-  -Dgallium-drivers=llvmpipe,softpipe,virgl \
-%endif
+  -Dgallium-drivers=llvmpipe,softpipe,virgl,nouveau,r300,crocus,i915,iris,svga,radeonsi,r600,zink \
   -Dgallium-extra-hud=true \
   -Dgallium-mediafoundation=disabled \
-  -Dgallium-va=%{?with_va:enabled}%{!?with_va:disabled} \
-  -Dgallium-rusticl=%{?with_opencl:true}%{!?with_opencl:false} \
+  -Dgallium-va=enabled \
+  -Dgallium-rusticl=true \
   -Dvulkan-drivers=%{?vulkan_drivers} \
   -Dvulkan-layers=%{?vulkan_layers} \
   -Dgles1=enabled \
@@ -362,23 +274,14 @@ export MESON_PACKAGE_CACHE_DIR="%{cargo_registry}/"
   -Dglx=dri \
   -Degl=enabled \
   -Dglvnd=enabled \
-  -Dintel-rt=%{?with_intel_vk_rt:enabled}%{!?with_intel_vk_rt:disabled} \
+  -Dintel-rt=enabled \
   -Dmicrosoft-clc=disabled \
   -Dllvm=enabled \
   -Dshared-llvm=enabled \
   -Db_ndebug=true \
   -Dvalgrind=%{?with_valgrind:enabled}%{!?with_valgrind:disabled} \
   -Dbuild-tests=false \
-%if !0%{?with_libunwind}
-  -Dlibunwind=disabled \
-%endif
-%if !0%{?with_lmsensors}
-  -Dlmsensors=disabled \
-%endif
   -Dandroid-libbacktrace=disabled \
-%ifarch %{ix86}
-  -Dglx-read-only-text=true \
-%endif
   -Dvideo-codecs=%{?hw_video_codecs_free}%{?with_patented_video_codecs:%{hw_video_codecs_patented}} \
   %{nil}
 %meson_build
@@ -406,9 +309,6 @@ popd
 
 %files filesystem
 %dir %{_libdir}/dri
-%if 0%{?with_hardware}
-
-%endif
 
 %files libGL
 %{_libdir}/libGLX_mesa.so.0*
@@ -437,16 +337,12 @@ popd
 %{_libdir}/pkgconfig/gbm.pc
 
 
-%if 0%{?with_opencl}
-
 %files libOpenCL
 %{_libdir}/libRusticlOpenCL.so.*
 %{_sysconfdir}/OpenCL/vendors/rusticl.icd
 
 %files libOpenCL-devel
 %{_libdir}/libRusticlOpenCL.so
-
-%endif
 
 %files dri-drivers
 %dir %{_datadir}/drirc.d
@@ -455,113 +351,67 @@ popd
 %{_libdir}/dri/swrast_dri.so
 %{_libdir}/dri/virtio_gpu_dri.so
 
-%if 0%{?with_hardware}
-  %if 0%{?with_r300}
-    %{_libdir}/dri/r300_dri.so
-  %endif
-  %if 0%{?with_radeonsi}
-    %if 0%{?with_r600}
-      %{_libdir}/dri/r600_dri.so
-    %endif
-  %{_libdir}/dri/radeonsi_dri.so
-%endif
-%ifarch %{ix86} x86_64
-  %{_libdir}/dri/crocus_dri.so
-  %{_libdir}/dri/i915_dri.so
-  %if 0%{?with_iris}
-    %{_libdir}/dri/iris_dri.so
-  %endif
-%endif
+%{_libdir}/dri/r300_dri.so
+%{_libdir}/dri/r600_dri.so
+%{_libdir}/dri/radeonsi_dri.so
 
-%ifarch aarch64 %{ix86} x86_64
-  %{_libdir}/dri/hdlcd_dri.so
-  %{_libdir}/dri/apple_dri.so
-  %{_libdir}/dri/ingenic-drm_dri.so
-  %{_libdir}/dri/imx-drm_dri.so
-  %{_libdir}/dri/imx-lcdif_dri.so
-  %{_libdir}/dri/kirin_dri.so
-  %{_libdir}/dri/komeda_dri.so
-  %{_libdir}/dri/mali-dp_dri.so
-  %{_libdir}/dri/mcde_dri.so
-  %{_libdir}/dri/mxsfb-drm_dri.so
-  %{_libdir}/dri/panel-mipi-dbi_dri.so
-  %{_libdir}/dri/rcar-du_dri.so
-  %{_libdir}/dri/sti_dri.so
-  %{_libdir}/dri/stm_dri.so
-  # old kmsro drivers
-  %{_libdir}/dri/armada-drm_dri.so
-  %{_libdir}/dri/exynos_dri.so
-  %{_libdir}/dri/gm12u320_dri.so
-  %{_libdir}/dri/hx8357d_dri.so
-  %{_libdir}/dri/ili9163_dri.so
-  %{_libdir}/dri/ili9225_dri.so
-  %{_libdir}/dri/ili9341_dri.so
-  %{_libdir}/dri/ili9486_dri.so
-  %{_libdir}/dri/imx-dcss_dri.so
-  %{_libdir}/dri/mediatek_dri.so
-  %{_libdir}/dri/meson_dri.so
-  %{_libdir}/dri/mi0283qt_dri.so
-  %{_libdir}/dri/pl111_dri.so
-  %{_libdir}/dri/repaper_dri.so
-  %{_libdir}/dri/rockchip_dri.so
-  %{_libdir}/dri/rzg2l-du_dri.so
-  %{_libdir}/dri/ssd130x_dri.so
-  %{_libdir}/dri/st7586_dri.so
-  %{_libdir}/dri/st7735r_dri.so
-  %{_libdir}/dri/sun4i-drm_dri.so
-  %{_libdir}/dri/udl_dri.so
-  %{_libdir}/dri/vkms_dri.so
-  %{_libdir}/dri/zynqmp-dpsub_dri.so
-  # kmsro end
-%endif
-%if 0%{?with_vc4}
-%{_libdir}/dri/vc4_dri.so
-%endif
-%if 0%{?with_v3d}
-%{_libdir}/dri/v3d_dri.so
-%endif
-%if 0%{?with_freedreno}
-%{_libdir}/dri/kgsl_dri.so
-%{_libdir}/dri/msm_dri.so
-%endif
-%if 0%{?with_etnaviv}
-%{_libdir}/dri/etnaviv_dri.so
-%endif
-%if 0%{?with_tegra}
-%{_libdir}/dri/tegra_dri.so
-%endif
-%if 0%{?with_lima}
-%{_libdir}/dri/lima_dri.so
-%endif
-%if 0%{?with_panfrost}
-%{_libdir}/dri/panthor_dri.so
-%{_libdir}/dri/panfrost_dri.so
-%endif
+%{_libdir}/dri/crocus_dri.so
+%{_libdir}/dri/i915_dri.so
+%{_libdir}/dri/iris_dri.so
+
+# kmsro drivers
+%{_libdir}/dri/hdlcd_dri.so
+%{_libdir}/dri/apple_dri.so
+%{_libdir}/dri/ingenic-drm_dri.so
+%{_libdir}/dri/imx-drm_dri.so
+%{_libdir}/dri/imx-lcdif_dri.so
+%{_libdir}/dri/kirin_dri.so
+%{_libdir}/dri/komeda_dri.so
+%{_libdir}/dri/mali-dp_dri.so
+%{_libdir}/dri/mcde_dri.so
+%{_libdir}/dri/mxsfb-drm_dri.so
+%{_libdir}/dri/panel-mipi-dbi_dri.so
+%{_libdir}/dri/rcar-du_dri.so
+%{_libdir}/dri/sti_dri.so
+%{_libdir}/dri/stm_dri.so
+# old kmsro drivers
+%{_libdir}/dri/armada-drm_dri.so
+%{_libdir}/dri/exynos_dri.so
+%{_libdir}/dri/gm12u320_dri.so
+%{_libdir}/dri/hx8357d_dri.so
+%{_libdir}/dri/ili9163_dri.so
+%{_libdir}/dri/ili9225_dri.so
+%{_libdir}/dri/ili9341_dri.so
+%{_libdir}/dri/ili9486_dri.so
+%{_libdir}/dri/imx-dcss_dri.so
+%{_libdir}/dri/mediatek_dri.so
+%{_libdir}/dri/meson_dri.so
+%{_libdir}/dri/mi0283qt_dri.so
+%{_libdir}/dri/pl111_dri.so
+%{_libdir}/dri/repaper_dri.so
+%{_libdir}/dri/rockchip_dri.so
+%{_libdir}/dri/rzg2l-du_dri.so
+%{_libdir}/dri/ssd130x_dri.so
+%{_libdir}/dri/st7586_dri.so
+%{_libdir}/dri/st7735r_dri.so
+%{_libdir}/dri/sun4i-drm_dri.so
+%{_libdir}/dri/udl_dri.so
+%{_libdir}/dri/vkms_dri.so
+%{_libdir}/dri/zynqmp-dpsub_dri.so
+
 %{_libdir}/dri/nouveau_dri.so
-%if 0%{?with_vmware}
 %{_libdir}/dri/vmwgfx_dri.so
-%endif
-%endif
-%if 0%{?with_hardware}
+
 %{_libdir}/dri/libdril_dri.so
 %{_libdir}/libgallium-*.so
-%endif
 
 %{_libdir}/dri/zink_dri.so
 
-%if 0%{?with_hardware}
-%if 0%{?with_va}
 %files va-drivers
 %{_libdir}/dri/nouveau_drv_video.so
-%if 0%{?with_r600}
 %{_libdir}/dri/r600_drv_video.so
-%endif
-%if 0%{?with_radeonsi}
 %{_libdir}/dri/radeonsi_drv_video.so
-%endif
 %{_libdir}/dri/virtio_gpu_drv_video.so
-%endif
-%endif
 
 %files vulkan-drivers
 %{_libdir}/libvulkan_lvp.so
@@ -571,33 +421,22 @@ popd
 %{_datadir}/vulkan/explicit_layer.d/VkLayer_MESA_*.json
 %{_datadir}/vulkan/implicit_layer.d/VkLayer_MESA_*.json
 
-%if 0%{?with_vulkan_hw}
 %{_libdir}/libvulkan_radeon.so
 %{_datadir}/vulkan/icd.d/radeon_icd.*.json
-%if 0%{?with_nvk}
 %{_libdir}/libvulkan_nouveau.so
 %{_datadir}/vulkan/icd.d/nouveau_icd.*.json
-%endif
-%ifarch %{ix86} x86_64
-  %{_libdir}/libvulkan_intel.so
-  %{_libdir}/libvulkan_intel_hasvk.so
-  %{_datadir}/vulkan/icd.d/intel_icd.*.json
-  %{_datadir}/vulkan/icd.d/intel_hasvk_icd.*.json
-%endif
-%ifarch aarch64
-  %{_libdir}/libvulkan_broadcom.so
-  %{_datadir}/vulkan/icd.d/broadcom_icd.*.json
-  %{_libdir}/libvulkan_freedreno.so
-  %{_datadir}/vulkan/icd.d/freedreno_icd.*.json
-  %{_libdir}/libvulkan_panfrost.so
-  %{_datadir}/vulkan/icd.d/panfrost_icd.*.json
-  %{_libdir}/libpowervr_rogue.so
-  %{_libdir}/libvulkan_powervr_mesa.so
-  %{_datadir}/vulkan/icd.d/powervr_mesa_icd.*.json
-%endif
-%endif
+%{_libdir}/libvulkan_intel.so
+%{_libdir}/libvulkan_intel_hasvk.so
+%{_datadir}/vulkan/icd.d/intel_icd.*.json
+%{_datadir}/vulkan/icd.d/intel_hasvk_icd.*.json
 
 %changelog
+* Thu Apr 30 2026 Kristián Kekeš <gamerix2006@gmail.com>
+  Treat the spec as Fedora x86_64 only:
+  - Add ExclusiveArch x86_64
+  - Drop unreachable RHEL/s390x/i686/aarch64 conditionals and globals
+  - Drop dead commented patches and unused build_branch global
+
 * Thu Apr 30 2026 Kristián Kekeš <gamerix2006@gmail.com>
   Enable b_ndebug=true to drop assertions from hot paths,
   matching CachyOS PKGBUILD defaults
@@ -631,7 +470,7 @@ popd
   https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/34865
 
 * Thu Apr 17 2025 Mihai Vultur <xanto@egaming.ro>
-  Remove 'gallium-opencl' now that clover was removed. 
+  Remove 'gallium-opencl' now that clover was removed.
   https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/19385
 
 * Fri Apr 11 2025 Mihai Vultur <xanto@egaming.ro>
@@ -691,7 +530,7 @@ popd
   https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/27593
   If we do a native build, regardless of the host architecture and we
   build Anv or Iris, we need intel-clc. So force building that tool.
- 
+
 * Sun Feb 04 2024 Mihai Vultur <xanto@egaming.ro>
   Enable imagination-experimental (PowerVR) Vulkan Driver.
   Enable nouveau-experimental for Nvidia Drivers. For Kernel 6.7+
@@ -708,14 +547,14 @@ popd
   An update on the linker will now refuse to create binaries with a loadable
   memory segment that has read, write and execute permissions set.
   mesa creates one unless "glx-read-only-text" is enabled.
- 
+
 * Sat Nov 11 2023 Mihai Vultur <mihaivultur7@gmail.com>
   Add new drivers to the list: https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/26129
- 
+
 * Wed Oct 25 2023 Mihai Vultur <mihaivultur7@gmail.com>
   Various modifications and adjustments to more closely follow the official spec.
   + hdlcd_dri.so
- 
+
 * Tue Feb 28 2023 Mihai Vultur <mihaivultur7@gmail.com>
   According to https://gitlab.freedesktop.org/mesa/mesa/-/commit/a06ab9849db7fdf8f5194412f0c5a15abd8ece9b
   Vdpau support for r300 has been dropped.
@@ -786,7 +625,7 @@ popd
 - Set vulkan-layers=device-select,overlay since upstream commit 54fe5b04
 
 * Fri Dec 11 2020 Mihai Vultur <xanto@egaming.ro>
-- Set osmesa=true since upstream commit ee802372180a2b4460cc7abb53438e45c6b6f1e4 
+- Set osmesa=true since upstream commit ee802372180a2b4460cc7abb53438e45c6b6f1e4
 
 * Wed Nov 25 2020 Mihai Vultur <xanto@egaming.ro>
 - meson: __meson_auto_features default to disabled
@@ -818,7 +657,7 @@ popd
 * Sun Oct 06 2019 Mihai Vultur <xanto@egaming.ro>
 - Architecture specific builds might run asynchronous.
 - This might cause that same package build for x86_64 will be different when
--  built for i686. This is problematic when we want to install multilib packages. 
+-  built for i686. This is problematic when we want to install multilib packages.
 - Convert the specfile to template and use it to generate the actual script.
 - This will prevent the random failues and mismatch between arch versions.
 
