@@ -11,8 +11,8 @@
 
 # Linux Kernel Versions
 %define _basekver 7.0
-%define _stablekver 0
-%define _tagrel 2
+%define _stablekver 2
+%define _tagrel 1
 %define _rpmver %{version}-%{release}
 %define _kver %{_rpmver}.%{_arch}
 
@@ -23,7 +23,7 @@
 
 # Build bundled nvidia-open kernel modules.
 %define _build_nv 1
-%define _nv_ver 595.58.03
+%define _nv_ver 595.71.05
 %define _nv_pkg NVIDIA-kernel-module-source-%{_nv_ver}
 
 # Default tickrate.
@@ -432,6 +432,9 @@ Recommends:     xorg-x11-drv-nvidia >= %{_nv_ver}
 %files
 
 %changelog
+* Thu Apr 30 2026 Kristián Kekeš <gamerix2006@gmail.com> - 7.0.2-cachyos1
+- Update to CachyOS 7.0.2-1
+- Bump bundled nvidia-open to 595.71.05
 * Sun Apr 19 2026 Kristián Kekeš <gamerix2006@gmail.com> - 7.0.0-cachyos2
 - Update to CachyOS 7.0.0-2
 - Switch to the default CachyOS kernel packaging
