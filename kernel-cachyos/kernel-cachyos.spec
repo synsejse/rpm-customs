@@ -21,11 +21,6 @@
 
 %define _tag cachyos-%{_tarkver}-%{_tagrel}
 
-# Build bundled nvidia-open kernel modules.
-%define _build_nv 1
-%define _nv_ver 595.71.05
-%define _nv_pkg NVIDIA-kernel-module-source-%{_nv_ver}
-
 # Default tickrate.
 %define _hz_tick 1000
 
@@ -37,8 +32,6 @@
 %define _devel_dir %{_usrsrc}/kernels/%{_kver}
 
 %define _patch_src https://raw.githubusercontent.com/CachyOS/kernel-patches/master/%{_basekver}
-
-%define _module_args KERNEL_UNAME=%{_kver} IGNORE_PREEMPT_RT_PRESENCE=1 SYSSRC=%{_builddir}/linux-%{_tag} SYSOUT=%{_builddir}/linux-%{_tag}
 
 Name:           kernel-cachyos
 Summary:        Linux Cachy Sauce Kernel by CachyOS with other patches and improvements.
@@ -73,31 +66,17 @@ BuildRequires:  perl-interpreter
 BuildRequires:  python3-devel
 BuildRequires:  python3-pyyaml
 BuildRequires:  python-srpm-macros
-%if %{_build_nv}
-BuildRequires:  gcc-c++
-%endif
 
 Source0:        https://github.com/CachyOS/linux/archive/refs/tags/%{_tag}.tar.gz
 Source1:        https://raw.githubusercontent.com/CachyOS/linux-cachyos/master/linux-cachyos/config
 
-%if %{_build_nv}
-Source10:       https://download.nvidia.com/XFree86/NVIDIA-kernel-module-source/%{_nv_pkg}.tar.xz
-%endif
-
 Patch0:         %{_patch_src}/sched/0001-bore-cachy.patch
-
-%if %{_build_nv}
-Patch10:        %{_patch_src}/misc/nvidia/0002-Add-IBT-support.patch
-Patch12:        %{_patch_src}/misc/nvidia/0003-fix-dsc-correct-RC-parameter-tables-to-match-VESA-DS.patch
-Patch13:        %{_patch_src}/misc/nvidia/0004-fix-dsc-use-bits_per_component-for-flatnessDetThresh.patch
-Patch14:        %{_patch_src}/misc/nvidia/0005-fix-dp-add-Bigscreen-Beyond-VR-headset-to-WAR-databa.patch
-%endif
 
 %description
     The meta package for %{name}.
 
 %prep
-%setup -q %{?SOURCE10:-b 10} -n linux-%{_tag}
+%setup -q -n linux-%{_tag}
 %autopatch -p1 -v -M 9
 
     cp %{SOURCE1} .config
@@ -137,23 +116,9 @@ Patch14:        %{_patch_src}/misc/nvidia/0005-fix-dp-add-Bigscreen-Beyond-VR-he
 
     diff -u %{SOURCE1} .config || :
 
-%if %{_build_nv}
-cd %{_builddir}/%{_nv_pkg}
-%patch -P 10 -p1
-%patch -P 12 -p1
-%patch -P 13 -p1
-%patch -P 14 -p1
-cd %{_builddir}/linux-%{_tag}
-%endif
-
 %build
     %make_build EXTRAVERSION=-%{release}.%{_arch} all
     %make_build -C tools/bpf/bpftool vmlinux.h feature-clang-bpf-co-re=1
-
-    %if %{_build_nv}
-        cd %{_builddir}/%{_nv_pkg}
-        CFLAGS= CXXFLAGS= LDFLAGS= %make_build %{_module_args} IGNORE_CC_MISMATCH=yes modules
-    %endif
 
 %install
     echo "Installing the kernel image..."
@@ -259,14 +224,6 @@ cd %{_builddir}/linux-%{_tag}
     echo "Creating stub initramfs..."
     install -dm755 %{buildroot}/boot
     dd if=/dev/zero of=%{buildroot}/boot/initramfs-%{_kver}.img bs=1M count=90
-
-    %if %{_build_nv}
-        cd %{_builddir}/%{_nv_pkg}
-        echo "Installing NVIDIA open kernel modules..."
-        install -Dt %{buildroot}%{_kernel_dir}/nvidia -m644 kernel-open/*.ko
-        find %{buildroot}%{_kernel_dir}/nvidia -name '*.ko' -exec zstd --rm -19 {} +
-        install -Dt %{buildroot}/%{_defaultlicensedir}/%{name}-nvidia-open -m644 COPYING
-    %endif
 
 %package core
 Summary:        Linux Cachy Sauce Kernel by CachyOS with other patches and improvements
@@ -408,29 +365,11 @@ Requires:       %{name}-devel = %{_rpmver}
 
 %files devel-matched
 
-%if %{_build_nv}
-%package nvidia-open
-Summary:        nvidia-open %{_nv_ver} kernel modules for %{name}
-Provides:       nvidia-kmod >= %{_nv_ver}
-Provides:       installonlypkg(kernel-module)
-Requires:       kernel-uname-r = %{_kver}
-Conflicts:      akmod-nvidia
-Recommends:     xorg-x11-drv-nvidia >= %{_nv_ver}
-
-%description nvidia-open
-    This package provides nvidia-open %{_nv_ver} kernel modules for %{name}.
-
-%post nvidia-open
-    /sbin/depmod -a %{_kver}
-
-%files nvidia-open
-    %license %{_defaultlicensedir}/%{name}-nvidia-open/COPYING
-    %{_kernel_dir}/nvidia
-%endif
-
 %files
 
 %changelog
+* Thu Apr 30 2026 Kristián Kekeš <gamerix2006@gmail.com> - 7.0.2-cachyos1
+- Drop bundled nvidia-open kernel module build; use akmod-nvidia (RPM Fusion) instead
 * Thu Apr 30 2026 Kristián Kekeš <gamerix2006@gmail.com> - 7.0.2-cachyos1
 - Drop the PAHOLE_VARIABLE removal HACK patch; no longer applies cleanly
 * Thu Apr 30 2026 Kristián Kekeš <gamerix2006@gmail.com> - 7.0.2-cachyos1
