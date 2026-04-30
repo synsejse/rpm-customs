@@ -24,12 +24,12 @@
 %bcond_without valgrind
 
 %global vulkan_layers device-select,anti-lag,screenshot,vram-report-limit,overlay
-%global vulkan_drivers swrast,amd,intel,intel_hasvk,nouveau
+%global vulkan_drivers swrast,amd,intel,intel_hasvk,nouveau,virtio
 
 Name:           %{package_name}
 Summary:        Mesa 3D Graphics Library, git version
 Version:        %{version_string}
-Release:        0.44%{?gitrel}%{?dist}
+Release:        0.45%{?gitrel}%{?dist}
 
 License:        MIT
 URL:            http://www.mesa3d.org
@@ -274,9 +274,10 @@ export MESON_PACKAGE_CACHE_DIR="%{cargo_registry}/"
   -Dgallium-rusticl=true \
   -Dvulkan-drivers=%{?vulkan_drivers} \
   -Dvulkan-layers=%{?vulkan_layers} \
-  -Dgles1=enabled \
+  -Dgles1=disabled \
   -Dgles2=enabled \
   -Dopengl=true \
+  -Dgbm=enabled \
   -Dglx=dri \
   -Degl=enabled \
   -Dglvnd=enabled \
@@ -438,8 +439,16 @@ popd
 %{_libdir}/libvulkan_intel_hasvk.so
 %{_datadir}/vulkan/icd.d/intel_icd.*.json
 %{_datadir}/vulkan/icd.d/intel_hasvk_icd.*.json
+%{_libdir}/libvulkan_virtio.so
+%{_datadir}/vulkan/icd.d/virtio_icd.*.json
 
 %changelog
+* Thu Apr 30 2026 Kristián Kekeš <gamerix2006@gmail.com>
+  Tune build options:
+  - Disable -Dgles1 (OpenGL ES 1.x is effectively unused)
+  - Set -Dgbm=enabled explicitly (we ship libgbm subpackages)
+  - Add 'virtio' Vulkan driver for VM guests (venus)
+
 * Thu Apr 30 2026 Kristián Kekeš <gamerix2006@gmail.com>
   Bump pkgconfig(libdrm) BuildRequires to >= 2.4.133 to match
   upstream amdgpu driver requirement.
