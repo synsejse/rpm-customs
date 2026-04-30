@@ -366,6 +366,7 @@ export MESON_PACKAGE_CACHE_DIR="%{cargo_registry}/"
   -Dmicrosoft-clc=disabled \
   -Dllvm=enabled \
   -Dshared-llvm=enabled \
+  -Db_ndebug=true \
   -Dvalgrind=%{?with_valgrind:enabled}%{!?with_valgrind:disabled} \
   -Dbuild-tests=false \
 %if !0%{?with_libunwind}
@@ -597,6 +598,10 @@ popd
 %endif
 
 %changelog
+* Thu Apr 30 2026 Kristián Kekeš <gamerix2006@gmail.com>
+  Enable b_ndebug=true to drop assertions from hot paths,
+  matching CachyOS PKGBUILD defaults
+
 * Fri Apr 10 2026 Kristián Kekeš <gamerix2006@gmail.com>
   Enable gallium-extra-hud and additional Mesa Vulkan utility layers
   based on current CachyOS PKGBUILD defaults
