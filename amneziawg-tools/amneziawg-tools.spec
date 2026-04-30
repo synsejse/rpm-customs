@@ -7,7 +7,7 @@ Version:        1.0.%{commitdate}git%{shortcommit}
 Release:        1%{?dist}
 URL:            https://github.com/amnezia-vpn/amneziawg-tools
 Summary:        AmneziaWG VPN userspace tools
-License:        GPLv2
+License:        GPL-2.0-only
 
 Source0:        https://github.com/amnezia-vpn/amneziawg-tools/archive/%{commit}/amneziawg-tools-%{shortcommit}.tar.gz
 
@@ -32,14 +32,6 @@ for managing AmneziaWG interfaces.
 %build
 %set_build_flags
 
-## Start DNS Hatchet
-%if (0%{?fedora} && 0%{?fedora} < 33) || (0%{?rhel} && 0%{?rhel} < 9)
-pushd contrib/dns-hatchet
-./apply.sh
-popd
-%endif
-## End DNS Hatchet
-
 %make_build RUNSTATEDIR=%{_rundir} -C src
 
 %install
@@ -60,6 +52,9 @@ WITH_BASHCOMPLETION=yes WITH_WGQUICK=yes WITH_SYSTEMDUNITS=yes -C src
 %{_mandir}/man8/awg-quick.8*
 
 %changelog
+* Thu Apr 30 2026 Kristián Kekeš <gamerix2006@gmail.com> - 1.0.20260403git5d6179a-1
+- Use SPDX license identifier
+- Drop DNS Hatchet block (only triggered on Fedora <33 / RHEL <9)
 * Fri Apr 03 2026 Automated Update <github-actions@github.com> - 1.0.20260403git5d6179a-1
 - Update to git commit 5d6179a
 * Fri Apr 04 2025 Automated Update <github-actions@github.com> - 1.0.20260403git5d6179a-1
