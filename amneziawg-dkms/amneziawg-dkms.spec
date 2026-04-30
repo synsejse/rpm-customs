@@ -9,8 +9,7 @@ Release:        1%{?dist}
 Epoch:          1
 URL:            https://github.com/amnezia-vpn/amneziawg-linux-kernel-module
 Summary:        AmneziaWG VPN kernel module (DKMS version)
-License:        GPLv2
-Group:          System Environment/Kernel
+License:        GPL-2.0-only
 BuildArch:      noarch
 
 Source0:        https://github.com/amnezia-vpn/amneziawg-linux-kernel-module/archive/%{commit}/amneziawg-linux-kernel-module-%{shortcommit}.tar.gz
@@ -71,6 +70,9 @@ dkms remove -m amneziawg -v %{version} -q --all || :
 %{_usrsrc}/amneziawg-%{version}
 
 %changelog
+* Thu Apr 30 2026 Kristián Kekeš <gamerix2006@gmail.com> - 1:1.0.20260403gitac946a9-1
+- Use SPDX license identifier
+- Drop deprecated Group tag
 * Fri Apr 03 2026 Automated Update <github-actions@github.com> - 1:1.0.20260403gitac946a9-1
 - Update to git commit ac946a9
 * Fri Apr 04 2025 Automated Update <github-actions@github.com> - 1:1.0.20260403gitac946a9-1
