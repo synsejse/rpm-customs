@@ -15,6 +15,12 @@
 %global hw_video_codecs_free vc1dec,av1dec,av1enc,vp9dec
 %global hw_video_codecs_patented ,h264dec,h264enc,h265dec,h265enc
 
+# Intel ray-tracing fails to build on 32-bit, see
+# https://gitlab.freedesktop.org/mesa/mesa/-/issues/10629
+%ifarch x86_64
+%global with_intel_vk_rt 1
+%endif
+
 %bcond_without valgrind
 
 %global vulkan_layers device-select,anti-lag,screenshot,vram-report-limit,overlay
@@ -23,11 +29,11 @@
 Name:           %{package_name}
 Summary:        Mesa 3D Graphics Library, git version
 Version:        %{version_string}
-Release:        0.42%{?gitrel}%{?dist}
+Release:        0.43%{?gitrel}%{?dist}
 
 License:        MIT
 URL:            http://www.mesa3d.org
-ExclusiveArch:  x86_64
+ExclusiveArch:  %{ix86} x86_64
 
 Source0:        %{build_repo}/-/archive/%{commit}.tar.gz#/mesa-%{commit}.tar.gz
 
@@ -274,7 +280,7 @@ export MESON_PACKAGE_CACHE_DIR="%{cargo_registry}/"
   -Dglx=dri \
   -Degl=enabled \
   -Dglvnd=enabled \
-  -Dintel-rt=enabled \
+  -Dintel-rt=%{?with_intel_vk_rt:enabled}%{!?with_intel_vk_rt:disabled} \
   -Dmicrosoft-clc=disabled \
   -Dllvm=enabled \
   -Dshared-llvm=enabled \
@@ -282,6 +288,9 @@ export MESON_PACKAGE_CACHE_DIR="%{cargo_registry}/"
   -Dvalgrind=%{?with_valgrind:enabled}%{!?with_valgrind:disabled} \
   -Dbuild-tests=false \
   -Dandroid-libbacktrace=disabled \
+%ifarch %{ix86}
+  -Dglx-read-only-text=true \
+%endif
   -Dvideo-codecs=%{?hw_video_codecs_free}%{?with_patented_video_codecs:%{hw_video_codecs_patented}} \
   %{nil}
 %meson_build
@@ -431,6 +440,12 @@ popd
 %{_datadir}/vulkan/icd.d/intel_hasvk_icd.*.json
 
 %changelog
+* Thu Apr 30 2026 Kristián Kekeš <gamerix2006@gmail.com>
+  Restore i686 (32-bit) support for multilib builds:
+  - Allow ExclusiveArch %{ix86} x86_64
+  - Gate intel-rt back behind x86_64 (still broken on 32-bit)
+  - Re-add -Dglx-read-only-text=true on i686
+
 * Thu Apr 30 2026 Kristián Kekeš <gamerix2006@gmail.com>
   Treat the spec as Fedora x86_64 only:
   - Add ExclusiveArch x86_64
