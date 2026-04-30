@@ -46,6 +46,7 @@ Version:        %{_basekver}.%{_stablekver}
 Release:        cachyos%{_tagrel}%{?dist}
 License:        GPL-2.0-only
 URL:            https://cachyos.org
+ExclusiveArch:  x86_64
 
 Requires:       kernel-core-uname-r = %{_kver}
 Requires:       kernel-modules-uname-r = %{_kver}
@@ -432,6 +433,8 @@ Recommends:     xorg-x11-drv-nvidia >= %{_nv_ver}
 %files
 
 %changelog
+* Thu Apr 30 2026 Kristián Kekeš <gamerix2006@gmail.com> - 7.0.2-cachyos1
+- Add ExclusiveArch x86_64 to match the spec's actual support surface
 * Thu Apr 30 2026 Kristián Kekeš <gamerix2006@gmail.com> - 7.0.2-cachyos1
 - Update to CachyOS 7.0.2-1
 - Bump bundled nvidia-open to 595.71.05
