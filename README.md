@@ -4,7 +4,7 @@ Custom RPM spec files and automated packaging workflows for software I see fit.
 
 ## Features
 
-- 🔄 **Auto-updating workflows**: GitHub Actions automatically check for upstream releases every 6 hours
+- 🔄 **Auto-updating workflows**: GitHub Actions automatically check for upstream releases daily at 12:00 UTC
 - 📦 **Production-ready specs**: RPM specifications with proper dependencies and build requirements
 
 ## License
