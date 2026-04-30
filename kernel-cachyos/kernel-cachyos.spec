@@ -88,7 +88,6 @@ Patch0:         %{_patch_src}/sched/0001-bore-cachy.patch
 
 %if %{_build_nv}
 Patch10:        %{_patch_src}/misc/nvidia/0002-Add-IBT-support.patch
-Patch11:        %{_patch_src}/misc/nvidia/0004-HACK-kernel-open-Makefile-Remove-PAHOLE_VARIABLE.patch
 Patch12:        %{_patch_src}/misc/nvidia/0003-fix-dsc-correct-RC-parameter-tables-to-match-VESA-DS.patch
 Patch13:        %{_patch_src}/misc/nvidia/0004-fix-dsc-use-bits_per_component-for-flatnessDetThresh.patch
 Patch14:        %{_patch_src}/misc/nvidia/0005-fix-dp-add-Bigscreen-Beyond-VR-headset-to-WAR-databa.patch
@@ -141,7 +140,6 @@ Patch14:        %{_patch_src}/misc/nvidia/0005-fix-dp-add-Bigscreen-Beyond-VR-he
 %if %{_build_nv}
 cd %{_builddir}/%{_nv_pkg}
 %patch -P 10 -p1
-%patch -P 11 -p1
 %patch -P 12 -p1
 %patch -P 13 -p1
 %patch -P 14 -p1
@@ -433,6 +431,8 @@ Recommends:     xorg-x11-drv-nvidia >= %{_nv_ver}
 %files
 
 %changelog
+* Thu Apr 30 2026 Kristián Kekeš <gamerix2006@gmail.com> - 7.0.2-cachyos1
+- Drop the PAHOLE_VARIABLE removal HACK patch; no longer applies cleanly
 * Thu Apr 30 2026 Kristián Kekeš <gamerix2006@gmail.com> - 7.0.2-cachyos1
 - Add ExclusiveArch x86_64 to match the spec's actual support surface
 * Thu Apr 30 2026 Kristián Kekeš <gamerix2006@gmail.com> - 7.0.2-cachyos1
