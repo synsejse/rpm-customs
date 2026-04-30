@@ -9,17 +9,19 @@
 %undefine _auto_set_build_flags
 %undefine _include_frame_pointers
 
-# Linux Kernel Versions
-%define _basekver 7.0
-%define _stablekver 2
-%define _tagrel 1
+# Upstream (CachyOS) version identifiers — bump when tracking a new tag.
+%define _upstream_base   7.0
+%define _upstream_stable 2
+%define _upstream_rel    1
+
+# Fedora-side packaging release counter — bump when respinning the same
+# upstream tag (config tweak, dropped patch, rebuild, etc.).
+%define _pkgrel 1
+
+# Derived.
 %define _rpmver %{version}-%{release}
-%define _kver %{_rpmver}.%{_arch}
-
-
-%define _tarkver %{version}
-
-%define _tag cachyos-%{_tarkver}-%{_tagrel}
+%define _kver   %{_rpmver}.%{_arch}
+%define _tag    cachyos-%{version}-%{_upstream_rel}
 
 # Default tickrate.
 %define _hz_tick 1000
@@ -31,12 +33,12 @@
 %define _kernel_dir /lib/modules/%{_kver}
 %define _devel_dir %{_usrsrc}/kernels/%{_kver}
 
-%define _patch_src https://raw.githubusercontent.com/CachyOS/kernel-patches/master/%{_basekver}
+%define _patch_src https://raw.githubusercontent.com/CachyOS/kernel-patches/master/%{_upstream_base}
 
 Name:           kernel-cachyos
 Summary:        Linux Cachy Sauce Kernel by CachyOS with other patches and improvements.
-Version:        %{_basekver}.%{_stablekver}
-Release:        cachyos%{_tagrel}%{?dist}
+Version:        %{_upstream_base}.%{_upstream_stable}
+Release:        cachyos%{_pkgrel}%{?dist}
 License:        GPL-2.0-only
 URL:            https://cachyos.org
 ExclusiveArch:  x86_64
@@ -368,6 +370,10 @@ Requires:       %{name}-devel = %{_rpmver}
 %files
 
 %changelog
+* Thu Apr 30 2026 Kristián Kekeš <gamerix2006@gmail.com> - 7.0.2-cachyos1
+- Split version macros: upstream identifiers (_upstream_base/stable/rel)
+  are now distinct from the Fedora-side _pkgrel counter
+
 * Thu Apr 30 2026 Kristián Kekeš <gamerix2006@gmail.com> - 7.0.2-cachyos1
 - Drop bundled nvidia-open kernel module build; use akmod-nvidia (RPM Fusion) instead
 * Thu Apr 30 2026 Kristián Kekeš <gamerix2006@gmail.com> - 7.0.2-cachyos1
