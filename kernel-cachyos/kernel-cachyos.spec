@@ -11,12 +11,12 @@
 
 # Upstream (CachyOS) version identifiers — bump when tracking a new tag.
 %define _upstream_base   7.0
-%define _upstream_stable 2
+%define _upstream_stable 3
 %define _upstream_rel    1
 
 # Fedora-side packaging release counter — bump when respinning the same
 # upstream tag (config tweak, dropped patch, rebuild, etc.).
-%define _pkgrel 2
+%define _pkgrel 1
 
 # Derived.
 %define _rpmver %{version}-%{release}
@@ -370,6 +370,8 @@ Requires:       %{name}-devel = %{_rpmver}
 %files
 
 %changelog
+* Sat May 02 2026 Kristián Kekeš <gamerix2006@gmail.com> - 7.0.3-cachyos1
+- Update to CachyOS 7.0.3-1
 * Thu Apr 30 2026 Kristián Kekeš <gamerix2006@gmail.com> - 7.0.2-cachyos2
 - Drop bundled nvidia-open kernel module build; use akmod-nvidia (RPM Fusion) instead
 - Split version macros: upstream identifiers (_upstream_base/stable/rel)
