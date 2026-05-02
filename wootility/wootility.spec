@@ -1,10 +1,12 @@
 %global debug_package %{nil}
+%global __os_install_post %{nil}
+%global __strip /bin/true
 %global appdir /opt/Wootility
 %global appimage Wootility-%{version}.AppImage
 
 Name:           wootility
 Version:        5.3.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Utility for configuring Wooting keyboards
 
 License:        LicenseRef-Wooting-EULA
@@ -57,5 +59,8 @@ cp -a squashfs-root/usr/share/icons/. %{buildroot}%{_datadir}/icons/
 %{_datadir}/icons/hicolor/*/apps/%{name}.*
 
 %changelog
+* Sat May 02 2026 Kristián Kekeš <gamerix2006@gmail.com> - 5.3.0-2
+- Disable rpm post-install strip pipeline so the squashfs payload appended
+  to the AppImage ELF is not truncated
 * Sat May 02 2026 Kristián Kekeš <gamerix2006@gmail.com> - 5.3.0-1
 - Initial RPM package wrapping the upstream Wootility AppImage
