@@ -41,6 +41,8 @@ BuildRequires:  meson >= 1.3.0
 BuildRequires:  cbindgen
 BuildRequires:  gcc
 BuildRequires:  gcc-c++
+# rusticl links libRusticlOpenCL.so with -static-libstdc++
+BuildRequires:  libstdc++-static
 BuildRequires:  gettext
 BuildRequires:  kernel-headers
 BuildRequires:  pkgconfig(libdrm) >= 2.4.133
@@ -443,6 +445,10 @@ popd
 %{_datadir}/vulkan/icd.d/virtio_icd.*.json
 
 %changelog
+* Sun May 03 2026 Kristián Kekeš <gamerix2006@gmail.com>
+  Add libstdc++-static BuildRequires so the i686 build of
+  libRusticlOpenCL.so can satisfy its -static-libstdc++ link step.
+
 * Thu Apr 30 2026 Kristián Kekeš <gamerix2006@gmail.com>
   Tune build options:
   - Disable -Dgles1 (OpenGL ES 1.x is effectively unused)
