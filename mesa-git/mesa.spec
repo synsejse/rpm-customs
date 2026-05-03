@@ -23,13 +23,13 @@
 
 %bcond_without valgrind
 
-%global vulkan_layers device-select,anti-lag,screenshot,vram-report-limit,overlay
+%global vulkan_layers device-select,intel-nullhw,anti-lag,screenshot,vram-report-limit,overlay
 %global vulkan_drivers swrast,amd,intel,intel_hasvk,nouveau,virtio
 
 Name:           %{package_name}
 Summary:        Mesa 3D Graphics Library, git version
 Version:        %{version_string}
-Release:        0.49%{?gitrel}%{?dist}
+Release:        0.50%{?gitrel}%{?dist}
 
 License:        MIT
 URL:            http://www.mesa3d.org
@@ -446,6 +446,9 @@ popd
 %{_datadir}/vulkan/icd.d/virtio_icd.*.json
 
 %changelog
+* Sun May 03 2026 Kristián Kekeš <gamerix2006@gmail.com>
+  Add the intel-nullhw Vulkan layer to the build, matching CachyOS.
+
 * Sun May 03 2026 Kristián Kekeš <gamerix2006@gmail.com>
   Enable rusticl by default for the gallium drivers where it is
   mature (asahi, freedreno, radeonsi) via
