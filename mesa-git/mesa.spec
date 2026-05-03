@@ -29,7 +29,7 @@
 Name:           %{package_name}
 Summary:        Mesa 3D Graphics Library, git version
 Version:        %{version_string}
-Release:        0.50%{?gitrel}%{?dist}
+Release:        0.51%{?gitrel}%{?dist}
 
 License:        MIT
 URL:            http://www.mesa3d.org
@@ -430,9 +430,9 @@ popd
 %{_libdir}/libvulkan_lvp.so
 %{_datadir}/vulkan/icd.d/lvp_icd.*.json
 %{_bindir}/mesa-*-control.py
-%{_libdir}/libVkLayer_MESA_*.so
-%{_datadir}/vulkan/explicit_layer.d/VkLayer_MESA_*.json
-%{_datadir}/vulkan/implicit_layer.d/VkLayer_MESA_*.json
+%{_libdir}/libVkLayer_*.so
+%{_datadir}/vulkan/explicit_layer.d/VkLayer_*.json
+%{_datadir}/vulkan/implicit_layer.d/VkLayer_*.json
 
 %{_libdir}/libvulkan_radeon.so
 %{_datadir}/vulkan/icd.d/radeon_icd.*.json
@@ -446,6 +446,11 @@ popd
 %{_datadir}/vulkan/icd.d/virtio_icd.*.json
 
 %changelog
+* Sun May 03 2026 Kristián Kekeš <gamerix2006@gmail.com>
+  Widen the vulkan-drivers %files VkLayer globs from MESA_* to * so
+  vendor-prefixed layers (intel-nullhw -> VkLayer_INTEL_nullhw) are
+  packaged instead of left orphaned in the buildroot.
+
 * Sun May 03 2026 Kristián Kekeš <gamerix2006@gmail.com>
   Add the intel-nullhw Vulkan layer to the build, matching CachyOS.
 
