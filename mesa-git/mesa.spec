@@ -29,7 +29,7 @@
 Name:           %{package_name}
 Summary:        Mesa 3D Graphics Library, git version
 Version:        %{version_string}
-Release:        0.48%{?gitrel}%{?dist}
+Release:        0.49%{?gitrel}%{?dist}
 
 License:        MIT
 URL:            http://www.mesa3d.org
@@ -274,6 +274,7 @@ export MESON_PACKAGE_CACHE_DIR="%{cargo_registry}/"
   -Dgallium-mediafoundation=disabled \
   -Dgallium-va=enabled \
   -Dgallium-rusticl=true \
+  -Dgallium-rusticl-enable-drivers=asahi,freedreno,radeonsi \
   -Dvulkan-drivers=%{?vulkan_drivers} \
   -Dvulkan-layers=%{?vulkan_layers} \
   -Dgles1=disabled \
@@ -445,6 +446,18 @@ popd
 %{_datadir}/vulkan/icd.d/virtio_icd.*.json
 
 %changelog
+* Sun May 03 2026 Kristián Kekeš <gamerix2006@gmail.com>
+  Enable rusticl by default for the gallium drivers where it is
+  mature (asahi, freedreno, radeonsi) via
+  -Dgallium-rusticl-enable-drivers=asahi,freedreno,radeonsi, mirroring
+  CachyOS. AMD users now get an OpenCL device with no RUSTICL_ENABLE
+  env var. iris/nouveau remain opt-in via RUSTICL_ENABLE.
+
+  Relax the libOpenCL ICD-loader Requires to a rich dep,
+  (ocl-icd or OpenCL-ICD-Loader), so the package installs cleanly on
+  systems already using the Khronos OpenCL-ICD-Loader without forcing
+  a swap.
+
 * Sun May 03 2026 Kristián Kekeš <gamerix2006@gmail.com>
   Add libstdc++-static BuildRequires so the i686 build of
   libRusticlOpenCL.so can satisfy its -static-libstdc++ link step.
