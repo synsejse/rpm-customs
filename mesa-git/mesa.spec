@@ -29,7 +29,7 @@
 Name:           %{package_name}
 Summary:        Mesa 3D Graphics Library, git version
 Version:        %{version_string}
-Release:        0.47%{?gitrel}%{?dist}
+Release:        0.48%{?gitrel}%{?dist}
 
 License:        MIT
 URL:            http://www.mesa3d.org
@@ -202,7 +202,7 @@ Provides:       libgbm-devel%{?_isa}
 
 %package libOpenCL
 Summary:        Mesa OpenCL runtime library
-Requires:       ocl-icd%{?_isa}
+Requires:       (ocl-icd%{?_isa} or OpenCL-ICD-Loader%{?_isa})
 Requires:       libclc%{?_isa}
 Requires:       %{name}-libgbm%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}
 Requires:       opencl-filesystem
