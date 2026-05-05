@@ -320,6 +320,120 @@ jobs:
           git commit -m "chore(mesa-git): update to ${{ steps.check_mesa.outputs.latest_version }} commit ${{ steps.check_mesa.outputs.short }}"
 
       # ============================================
+      # scx-scheds (sched-ext schedulers)
+      # ============================================
+      - name: Check for new scx-scheds version
+        id: check_scx_scheds
+        run: |
+          CURRENT_VERSION=$(grep -oP '^Version:\s*\K[0-9.]+' scx-scheds/scx-scheds.spec)
+          TAG_NAME=$(curl -fsSL https://api.github.com/repos/sched-ext/scx/releases/latest | jq -r '.tag_name')
+          if [ -z "$TAG_NAME" ] || [ "$TAG_NAME" = "null" ]; then
+            echo "Failed to determine latest scx release tag"
+            exit 1
+          fi
+          LATEST_VERSION="${TAG_NAME#v}"
+          echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "latest=$LATEST_VERSION" >> $GITHUB_OUTPUT
+          if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ]; then
+            echo "update_needed=true" >> $GITHUB_OUTPUT
+          else
+            echo "update_needed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update scx-scheds spec
+        if: steps.check_scx_scheds.outputs.update_needed == 'true'
+        run: |
+          LATEST_VERSION="${{ steps.check_scx_scheds.outputs.latest }}"
+          sed -i "s/^Version:\s*.*/Version:        $LATEST_VERSION/" scx-scheds/scx-scheds.spec
+          CURRENT_DATE=$(date '+%a %b %d %Y')
+          CHANGELOG_ENTRY="* $CURRENT_DATE Automated Update <github-actions@github.com> - $LATEST_VERSION-1"
+          sed -i "/^%changelog/a $CHANGELOG_ENTRY\n- Update to version $LATEST_VERSION" scx-scheds/scx-scheds.spec
+
+      - name: Commit scx-scheds changes
+        if: steps.check_scx_scheds.outputs.update_needed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add scx-scheds/scx-scheds.spec
+          git commit -m "chore(scx-scheds): update to version ${{ steps.check_scx_scheds.outputs.latest }}"
+
+      # ============================================
+      # scx-tools (scx_loader / scxctl)
+      # ============================================
+      - name: Check for new scx-tools version
+        id: check_scx_tools
+        run: |
+          CURRENT_VERSION=$(grep -oP '^Version:\s*\K[0-9.]+' scx-tools/scx-tools.spec)
+          TAG_NAME=$(curl -fsSL https://api.github.com/repos/sched-ext/scx-loader/tags | jq -r '.[0].name')
+          if [ -z "$TAG_NAME" ] || [ "$TAG_NAME" = "null" ]; then
+            echo "Failed to determine latest scx-loader tag"
+            exit 1
+          fi
+          LATEST_VERSION="${TAG_NAME#v}"
+          echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "latest=$LATEST_VERSION" >> $GITHUB_OUTPUT
+          if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ]; then
+            echo "update_needed=true" >> $GITHUB_OUTPUT
+          else
+            echo "update_needed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update scx-tools spec
+        if: steps.check_scx_tools.outputs.update_needed == 'true'
+        run: |
+          LATEST_VERSION="${{ steps.check_scx_tools.outputs.latest }}"
+          sed -i "s/^Version:\s*.*/Version:        $LATEST_VERSION/" scx-tools/scx-tools.spec
+          CURRENT_DATE=$(date '+%a %b %d %Y')
+          CHANGELOG_ENTRY="* $CURRENT_DATE Automated Update <github-actions@github.com> - $LATEST_VERSION-1"
+          sed -i "/^%changelog/a $CHANGELOG_ENTRY\n- Update to version $LATEST_VERSION" scx-tools/scx-tools.spec
+
+      - name: Commit scx-tools changes
+        if: steps.check_scx_tools.outputs.update_needed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add scx-tools/scx-tools.spec
+          git commit -m "chore(scx-tools): update to version ${{ steps.check_scx_tools.outputs.latest }}"
+
+      # ============================================
+      # scx-manager (CachyOS Qt GUI)
+      # ============================================
+      - name: Check for new scx-manager version
+        id: check_scx_manager
+        run: |
+          CURRENT_VERSION=$(grep -oP '^Version:\s*\K[0-9.]+' scx-manager/scx-manager.spec)
+          TAG_NAME=$(curl -fsSL https://api.github.com/repos/CachyOS/scx-manager/tags | jq -r '.[0].name')
+          if [ -z "$TAG_NAME" ] || [ "$TAG_NAME" = "null" ]; then
+            echo "Failed to determine latest scx-manager tag"
+            exit 1
+          fi
+          LATEST_VERSION="${TAG_NAME#v}"
+          echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "latest=$LATEST_VERSION" >> $GITHUB_OUTPUT
+          if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ]; then
+            echo "update_needed=true" >> $GITHUB_OUTPUT
+          else
+            echo "update_needed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update scx-manager spec
+        if: steps.check_scx_manager.outputs.update_needed == 'true'
+        run: |
+          LATEST_VERSION="${{ steps.check_scx_manager.outputs.latest }}"
+          sed -i "s/^Version:\s*.*/Version:        $LATEST_VERSION/" scx-manager/scx-manager.spec
+          CURRENT_DATE=$(date '+%a %b %d %Y')
+          CHANGELOG_ENTRY="* $CURRENT_DATE Automated Update <github-actions@github.com> - $LATEST_VERSION-1"
+          sed -i "/^%changelog/a $CHANGELOG_ENTRY\n- Update to version $LATEST_VERSION" scx-manager/scx-manager.spec
+
+      - name: Commit scx-manager changes
+        if: steps.check_scx_manager.outputs.update_needed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add scx-manager/scx-manager.spec
+          git commit -m "chore(scx-manager): update to version ${{ steps.check_scx_manager.outputs.latest }}"
+
+      # ============================================
       # Push all changes at once
       # ============================================
       - name: Push all changes
