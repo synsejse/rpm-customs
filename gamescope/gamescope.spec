@@ -11,7 +11,7 @@
 
 Name:           gamescope
 Version:        3.16.23
-Release:        0.1.%{commitdate}git%{shortcommit}%{?dist}
+Release:        0.2.%{commitdate}git%{shortcommit}%{?dist}
 Summary:        Micro-compositor for video games on Wayland (synse fork)
 
 License:        LicenseRef-Callaway-BSD
@@ -122,6 +122,7 @@ export PKG_CONFIG_PATH=pkgconfig
     -Denable_gamescope=true \
     -Denable_gamescope_wsi_layer=true \
     -Denable_openvr_support=true \
+    -Denable_tests=false \
     -Dforce_fallback_for=[] \
     -Dinput_emulation=enabled \
     -Dpipewire=enabled \
@@ -145,5 +146,8 @@ export PKG_CONFIG_PATH=pkgconfig
 %{_datadir}/vulkan/implicit_layer.d/VkLayer_FROG_gamescope_wsi.*.json
 
 %changelog
+* Sat May 16 2026 Kristián Kekeš <gamerix2006@gmail.com> - 3.16.23-0.2.20260428git6a9097f
+- Disable the upstream test build (-Denable_tests=false) so the spec
+  does not require catch2-with-main, which isn't in the buildroot
 * Fri May 15 2026 Kristián Kekeš <gamerix2006@gmail.com> - 3.16.23-0.1.20260428git6a9097f
 - Initial RPM package built from the synsejse/gamescope-synse fork
