@@ -5,13 +5,13 @@
 %global vkroots_shortcommit %(c=%{vkroots_commit}; echo ${c:0:7})
 
 # Personal fork of gamescope tracked by commit (no upstream tag).
-%global commit 6a9097fbaf64b08b15be9c3e06039166c8599a3b
+%global commit f2ad3bc7c1247d57f3f8f0200ac0172088f8dc2b
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
-%global commitdate 20260428
+%global commitdate 20260516
 
 Name:           gamescope
 Version:        3.16.23
-Release:        0.3.%{commitdate}git%{shortcommit}%{?dist}
+Release:        0.4.%{commitdate}git%{shortcommit}%{?dist}
 Epoch:          1
 Summary:        Micro-compositor for video games on Wayland (synse fork)
 
@@ -147,6 +147,8 @@ export PKG_CONFIG_PATH=pkgconfig
 %{_datadir}/vulkan/implicit_layer.d/VkLayer_FROG_gamescope_wsi.*.json
 
 %changelog
+* Sat May 16 2026 Automated Update <github-actions@github.com> - 1:3.16.23-0.4.20260516gitf2ad3bc
+- Update to git commit f2ad3bc
 * Sat May 16 2026 Kristián Kekeš <gamerix2006@gmail.com> - 1:3.16.23-0.3.20260428git6a9097f
 - Set Epoch: 1 so this fork always supersedes stock Fedora gamescope,
   regardless of how dnf compares the snapshot Release against Fedora's
