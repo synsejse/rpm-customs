@@ -11,7 +11,7 @@
 
 Name:           gamescope
 Version:        3.16.23
-Release:        0.5.%{commitdate}git%{shortcommit}%{?dist}
+Release:        0.6.%{commitdate}git%{shortcommit}%{?dist}
 Epoch:          1
 Summary:        Micro-compositor for video games on Wayland (synse fork)
 
@@ -63,7 +63,6 @@ BuildRequires:  pkgconfig(xrender)
 BuildRequires:  pkgconfig(xres)
 BuildRequires:  pkgconfig(xtst)
 BuildRequires:  pkgconfig(xxf86vm)
-BuildRequires:  spirv-headers-devel
 # Enforce the the minimum EVR to contain fixes for all of:
 # CVE-2021-28021 CVE-2021-42715 CVE-2021-42716 CVE-2022-28041 CVE-2023-43898
 # CVE-2023-45661 CVE-2023-45662 CVE-2023-45663 CVE-2023-45664 CVE-2023-45666
@@ -91,9 +90,6 @@ This package is built from a personal fork at %{url}.
 
 %prep
 %autosetup -p1 -N -n gamescope-synse-%{commit}
-
-# Replace spirv-headers include with the system directory
-sed -i 's^../thirdparty/SPIRV-Headers/include/spirv/^/usr/include/spirv/^' src/meson.build
 
 # Push in reshade and vkroots from sources instead of submodule
 tar -xzf %{SOURCE1} --strip-components=1 -C src/reshade
@@ -131,6 +127,13 @@ tar -xzf %{SOURCE2} --strip-components=1 -C subprojects/vkroots
 %{_datadir}/vulkan/implicit_layer.d/VkLayer_FROG_gamescope_wsi.*.json
 
 %changelog
+* Sat May 16 2026 Kristián Kekeš <gamerix2006@gmail.com> - 1:3.16.23-0.6.20260516gitf2ad3bc
+- Drop spirv-headers-devel BuildRequires and the matching %prep sed
+  that rewrote the bundled SPIRV-Headers include path. The fork is
+  expected to vendor SPIRV-Headers (or its needed headers) directly
+  in thirdparty/SPIRV-Headers/ rather than relying on the system
+  package.
+
 * Sat May 16 2026 Kristián Kekeš <gamerix2006@gmail.com> - 1:3.16.23-0.5.20260516gitf2ad3bc
 - Drop the three Fedora patches (Allow-to-use-system-wlroots,
   Use-system-stb-glm, reshade 0001-cstdint) and the stb.pc shim so the
