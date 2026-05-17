@@ -1,6 +1,4 @@
 %global libliftoff_minver 0.5.0
-%global reshade_commit 696b14cd6006ae9ca174e6164450619ace043283
-%global reshade_shortcommit %(c=%{reshade_commit}; echo ${c:0:7})
 %global vkroots_commit 5106d8a0df95de66cc58dc1ea37e69c99afc9540
 %global vkroots_shortcommit %(c=%{vkroots_commit}; echo ${c:0:7})
 
@@ -22,8 +20,7 @@ URL:            https://github.com/synsejse/gamescope-synse
 ExcludeArch:    ppc64le
 
 Source0:        %{url}/archive/%{commit}/gamescope-synse-%{shortcommit}.tar.gz
-Source1:        https://github.com/misyltoad/reshade/archive/%{reshade_commit}/reshade-%{reshade_shortcommit}.tar.gz
-Source2:        https://github.com/misyltoad/vkroots/archive/%{vkroots_commit}/vkroots-%{vkroots_shortcommit}.tar.gz
+Source1:        https://github.com/misyltoad/vkroots/archive/%{vkroots_commit}/vkroots-%{vkroots_shortcommit}.tar.gz
 
 BuildRequires:  cmake
 BuildRequires:  gcc
@@ -52,7 +49,7 @@ BuildRequires:  pkgconfig(vulkan)
 BuildRequires:  pkgconfig(wayland-protocols) >= 1.17
 BuildRequires:  pkgconfig(wayland-scanner)
 BuildRequires:  pkgconfig(wayland-server)
-BuildRequires:  pkgconfig(wlroots-0.18)
+BuildRequires:  pkgconfig(wlroots-0.20)
 BuildRequires:  pkgconfig(x11)
 BuildRequires:  pkgconfig(xcomposite)
 BuildRequires:  pkgconfig(xdamage)
@@ -91,9 +88,8 @@ This package is built from a personal fork at %{url}.
 %prep
 %autosetup -p1 -N -n gamescope-synse-%{commit}
 
-# Push in reshade and vkroots from sources instead of submodule
-tar -xzf %{SOURCE1} --strip-components=1 -C src/reshade
-tar -xzf %{SOURCE2} --strip-components=1 -C subprojects/vkroots
+# Push in vkroots from source instead of submodule
+tar -xzf %{SOURCE1} --strip-components=1 -C subprojects/vkroots
 
 %build
 %meson \
@@ -127,8 +123,13 @@ tar -xzf %{SOURCE2} --strip-components=1 -C subprojects/vkroots
 %{_datadir}/vulkan/implicit_layer.d/VkLayer_FROG_gamescope_wsi.*.json
 
 %changelog
-* Sun May 17 2026 Automated Update <github-actions@github.com> - 1:3.16.23-0.7.20260517git388e15b
-- Update to git commit 388e15b
+* Sun May 17 2026 Kristián Kekeš <gamerix2006@gmail.com> - 1:3.16.23-0.7.20260517git388e15b
+- Update to git commit 388e15b (Bump wlroots to v0.20)
+- Drop the reshade Source and prep step — the hard fork removed reshade
+  entirely (src/reshade no longer exists)
+- Bump pkgconfig(wlroots-0.18) BuildRequires to wlroots-0.20 to match
+  the fork's wlroots bump
+
 * Sat May 16 2026 Kristián Kekeš <gamerix2006@gmail.com> - 1:3.16.23-0.6.20260516gitf2ad3bc
 - Drop spirv-headers-devel BuildRequires and the matching %prep sed
   that rewrote the bundled SPIRV-Headers include path. The fork is
