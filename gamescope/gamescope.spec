@@ -3,13 +3,13 @@
 %global vkroots_shortcommit %(c=%{vkroots_commit}; echo ${c:0:7})
 
 # Personal fork of gamescope tracked by commit (no upstream tag).
-%global commit 339ef0058e986cb5ba7446edd89fc5c2cc3885ef
+%global commit 3585324d0f2be4ce719b4ef3cd9ce90a3b36005c
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 %global commitdate 20260517
 
 Name:           gamescope
 Version:        3.16.23
-Release:        0.9.%{commitdate}git%{shortcommit}%{?dist}
+Release:        0.10.%{commitdate}git%{shortcommit}%{?dist}
 Epoch:          1
 Summary:        Micro-compositor for video games on Wayland (synse fork)
 
@@ -111,6 +111,8 @@ tar -xzf %{SOURCE1} --strip-components=1 -C subprojects/vkroots
 %{_datadir}/vulkan/implicit_layer.d/VkLayer_FROG_gamescope_wsi.*.json
 
 %changelog
+* Sun May 17 2026 Automated Update <github-actions@github.com> - 1:3.16.23-0.10.20260517git3585324
+- Update to git commit 3585324
 * Sun May 17 2026 Automated Update <github-actions@github.com> - 1:3.16.23-0.9.20260517git339ef00
 - Update to git commit 339ef00
 * Sun May 17 2026 Kristián Kekeš <gamerix2006@gmail.com> - 1:3.16.23-0.8.20260517git388e15b
