@@ -11,7 +11,7 @@
 
 # Upstream (CachyOS) version identifiers — bump when tracking a new tag.
 %define _upstream_base   7.0
-%define _upstream_stable 9
+%define _upstream_stable 10
 %define _upstream_rel    1
 
 # Fedora-side packaging release counter — bump when respinning the same
@@ -370,6 +370,8 @@ Requires:       %{name}-devel = %{_rpmver}
 %files
 
 %changelog
+* Sat May 23 2026 Automated Update <github-actions@github.com> - 7.0.10-cachyos1
+- Update to CachyOS 7.0.10-1
 * Sun May 17 2026 Automated Update <github-actions@github.com> - 7.0.9-cachyos1
 - Update to CachyOS 7.0.9-1
 * Fri May 15 2026 Automated Update <github-actions@github.com> - 7.0.8-cachyos1
