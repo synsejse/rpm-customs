@@ -12,7 +12,7 @@
 # Upstream (CachyOS) version identifiers — bump when tracking a new tag.
 %define _upstream_base   7.0
 %define _upstream_stable 10
-%define _upstream_rel    1
+%define _upstream_rel    2
 
 # Fedora-side packaging release counter — bump when respinning the same
 # upstream tag (config tweak, dropped patch, rebuild, etc.).
@@ -370,6 +370,9 @@ Requires:       %{name}-devel = %{_rpmver}
 %files
 
 %changelog
+* Sat May 23 2026 Kristián Kekeš <gamerix2006@gmail.com> - 7.0.10-cachyos1
+- Update to CachyOS 7.0.10-2 (upstream respin; -1 modpost failed on
+  undefined ttm_resource_del_bulk_move_unevictable in drivers/gpu/drm/ttm)
 * Sat May 23 2026 Automated Update <github-actions@github.com> - 7.0.10-cachyos1
 - Update to CachyOS 7.0.10-1
 * Sun May 17 2026 Automated Update <github-actions@github.com> - 7.0.9-cachyos1
