@@ -11,11 +11,11 @@ A collection of RPM spec files (Fedora-style) for software the maintainer packag
 Each package lives in its own directory and is self-contained:
 
 - `<package>/<package>.spec` — the spec file (always present)
-- Optional companion files used as local `SourceN:` entries (e.g. `jetbrains-toolbox/{icon.svg,jetbrains-toolbox.desktop,LICENSE}`, `cachyos-default-kernel/99-default`)
+- Optional companion files used as local `SourceN:` entries (e.g. `jetbrains-toolbox/{icon.svg,jetbrains-toolbox.desktop,LICENSE}`, `wooting-udev/70-wooting.rules`)
 
 There is **no shared tooling, no Makefile, no top-level build script**. Don't invent one.
 
-Packages currently tracked: `amneziawg-dkms`, `amneziawg-tools`, `cachyos-default-kernel`, `claude-desktop`, `jetbrains-toolbox`, `mesa-git`, `scx-manager`, `scx-scheds`, `scx-tools`, `wooting-udev`, `wootility-beta`, `zed`.
+Packages currently tracked: `amneziawg-dkms`, `amneziawg-tools`, `claude-desktop`, `jetbrains-toolbox`, `mesa-git`, `scx-manager`, `scx-scheds`, `scx-tools`, `wooting-udev`, `wootility-beta`, `zed`.
 
 The three `scx-*` packages are adapted from CachyOS's Fedora COPR (`bieszczaders/kernel-cachyos-addons`). `scx-scheds` requires `scx-tools` (the `scx_loader` D-Bus service + `scxctl` CLI) at runtime, and `scx-manager` requires both — install/build them together. Sources track upstream release tags from `sched-ext/scx`, `sched-ext/scx-loader`, and `CachyOS/scx-manager`.
 
@@ -49,8 +49,6 @@ Versioning idioms used by the auto-updater (preserve these exactly — the workf
 - Git snapshot: `%global commit <sha>` + `%global commitdate <YYYYMMDD>`; `Version: 1.0.%{commitdate}git%{shortcommit}` (amneziawg-dkms, amneziawg-tools).
 - Mesa-git snapshot uses `%define commit` + `%define version_string` + `%global commit_date` and bumps the numeric `Release: 0.<N>%{?dist}` field on each update — `version_string` comes from the upstream `VERSION` file at that commit (with `-devel` stripped).
 
-`cachyos-default-kernel` is hand-maintained and does **not** participate in the auto-update workflow — it ships a `/etc/kernel/postinst.d/99-default` hook that re-pins the latest CachyOS kernel as the grub default after kernel installs.
-
 ## Auto-update workflow (`.github/workflows/update-all-packages.yml`)
 
 Runs every 2 days at 12:00 UTC (cron `'0 12 */2 * *'`) and on `workflow_dispatch`. Architecture to keep in mind when editing:
@@ -67,4 +65,4 @@ When adding a new package to the workflow, follow the same three-step block patt
 
 - The `sed` patterns in the workflow are tightly coupled to the exact field names in each spec (`%global upstream_version`, `%global commit`, `%define commit`, `Version:`, `Release:`, etc.). Renaming or reformatting these in a spec will silently break its auto-updater step.
 - Don't edit `%changelog` entries that were inserted by `Automated Update <github-actions@github.com>` — they're regenerated whenever the workflow runs and will fight you.
-- `cachyos-default-kernel`'s `URL:` points at `github.com/synsejse/rpm-customs` (this repo). The git remote is `git@github.com:synsejse/rpm-customs.git`.
+- The git remote is `git@github.com:synsejse/rpm-customs.git`.
