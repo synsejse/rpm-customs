@@ -1,7 +1,7 @@
 %global _build_id_links none
 
 Name:           scx-manager
-Version:        1.15.10
+Version:        1.15.11
 Release:        1%{?dist}
 Summary:        Qt GUI for managing sched_ext schedulers via scx_loader
 
@@ -54,5 +54,7 @@ through the scx_loader D-Bus service.
 %{_datadir}/icons/hicolor/scalable/apps/org.cachyos.scx-manager.png
 
 %changelog
+* Tue May 26 2026 Automated Update <github-actions@github.com> - 1.15.11-1
+- Update to version 1.15.11
 * Tue May 05 2026 Kristián Kekeš <gamerix2006@gmail.com> - 1.15.10-1
 - Initial package, adapted from CachyOS COPR (bieszczaders/kernel-cachyos-addons)
