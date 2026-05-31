@@ -3,7 +3,7 @@
 %global debug_package %{nil}
 
 Name:           scx-synse-manager
-Version:        0.1.0
+Version:        0.1.1
 Release:        1%{?dist}
 Summary:        GTK4 / libadwaita GUI for managing sched_ext schedulers via scx_loader
 
@@ -62,5 +62,7 @@ export CARGO_NET_OFFLINE=true
 %{_datadir}/polkit-1/actions/org.cachyos.scx-synse-manager.policy
 
 %changelog
+* Sun May 31 2026 Kristián Kekeš <gamerix2006@gmail.com> - 0.1.1-1
+- Update to 0.1.1 (fix: run the privileged helper by absolute path)
 * Sun May 31 2026 Kristián Kekeš <gamerix2006@gmail.com> - 0.1.0-1
 - Initial package
