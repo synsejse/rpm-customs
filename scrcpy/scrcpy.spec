@@ -1,6 +1,6 @@
 Name:           scrcpy
 Version:        4.0
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Display and control Android devices over USB or TCP/IP
 
 License:        Apache-2.0
@@ -40,8 +40,12 @@ require Java and the Android SDK in the buildroot.
 %autosetup -p1
 
 %build
+# -Dprebuilt_server alone is sufficient to skip the gradle/Android-SDK
+# build path: server/meson.build branches on whether prebuilt_server is
+# set and only invokes scripts/build-wrapper.sh when it isn't. Setting
+# -Dcompile_server=false would actively skip subdir('server') entirely
+# and the install rule for the prebuilt JAR with it.
 %meson \
-    -Dcompile_server=false \
     -Dprebuilt_server=%{SOURCE1} \
     -Db_lto=true
 %meson_build
@@ -63,6 +67,12 @@ require Java and the Android SDK in the buildroot.
 %{_mandir}/man1/scrcpy.1*
 
 %changelog
+* Mon Jun 01 2026 Kristián Kekeš <gamerix2006@gmail.com> - 4.0-3
+- Drop -Dcompile_server=false; the top-level meson.build uses that
+  option to gate entering subdir('server') at all, which also skipped
+  the prebuilt_server install rule and left /usr/share/scrcpy/ empty.
+  -Dprebuilt_server alone already avoids the gradle/Java build path.
+
 * Mon Jun 01 2026 Kristián Kekeš <gamerix2006@gmail.com> - 4.0-2
 - Add the disconnected.png icon to %files (also installed by meson
   alongside scrcpy.png; check-files flagged it as unpackaged)
