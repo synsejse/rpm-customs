@@ -359,15 +359,15 @@ jobs:
           git commit -m "chore(scx-tools): update to version ${{ steps.check_scx_tools.outputs.latest }}"
 
       # ============================================
-      # scx-manager (CachyOS Qt GUI)
+      # scrcpy
       # ============================================
-      - name: Check for new scx-manager version
-        id: check_scx_manager
+      - name: Check for new scrcpy release
+        id: check_scrcpy
         run: |
-          CURRENT_VERSION=$(grep -oP '^Version:\s*\K[0-9.]+' scx-manager/scx-manager.spec)
-          TAG_NAME=$(curl -fsSL https://api.github.com/repos/CachyOS/scx-manager/tags | jq -r '.[0].name')
+          CURRENT_VERSION=$(grep -oP '^Version:\s*\K[0-9.]+' scrcpy/scrcpy.spec)
+          TAG_NAME=$(curl -fsSL https://api.github.com/repos/Genymobile/scrcpy/releases/latest | jq -r '.tag_name')
           if [ -z "$TAG_NAME" ] || [ "$TAG_NAME" = "null" ]; then
-            echo "Failed to determine latest scx-manager tag"
+            echo "Failed to determine latest scrcpy release"
             exit 1
           fi
           LATEST_VERSION="${TAG_NAME#v}"
@@ -379,22 +379,22 @@ jobs:
             echo "update_needed=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Update scx-manager spec
-        if: steps.check_scx_manager.outputs.update_needed == 'true'
+      - name: Update scrcpy spec
+        if: steps.check_scrcpy.outputs.update_needed == 'true'
         run: |
-          LATEST_VERSION="${{ steps.check_scx_manager.outputs.latest }}"
-          sed -i "s/^Version:\s*.*/Version:        $LATEST_VERSION/" scx-manager/scx-manager.spec
+          LATEST_VERSION="${{ steps.check_scrcpy.outputs.latest }}"
+          sed -i "s/^Version:\s*.*/Version:        $LATEST_VERSION/" scrcpy/scrcpy.spec
           CURRENT_DATE=$(date '+%a %b %d %Y')
           CHANGELOG_ENTRY="* $CURRENT_DATE Automated Update <github-actions@github.com> - $LATEST_VERSION-1"
-          sed -i "/^%changelog/a $CHANGELOG_ENTRY\n- Update to version $LATEST_VERSION" scx-manager/scx-manager.spec
+          sed -i "/^%changelog/a $CHANGELOG_ENTRY\n- Update to version $LATEST_VERSION" scrcpy/scrcpy.spec
 
-      - name: Commit scx-manager changes
-        if: steps.check_scx_manager.outputs.update_needed == 'true'
+      - name: Commit scrcpy changes
+        if: steps.check_scrcpy.outputs.update_needed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add scx-manager/scx-manager.spec
-          git commit -m "chore(scx-manager): update to version ${{ steps.check_scx_manager.outputs.latest }}"
+          git add scrcpy/scrcpy.spec
+          git commit -m "chore(scrcpy): update to version ${{ steps.check_scrcpy.outputs.latest }}"
 
       # ============================================
       # claude-desktop
