@@ -2,7 +2,7 @@
 %global appdir /opt/%{name}
 
 Name:           jetbrains-toolbox
-Version:        3.4.3.81140
+Version:        3.5.0.84344
 Release:        1%{?dist}
 Summary:        Manage all your JetBrains projects and tools
 
@@ -48,5 +48,7 @@ ln -s ../../opt/%{name}/%{name} %{buildroot}%{_bindir}/%{name}
 %{_datadir}/pixmaps/%{name}.svg
 
 %changelog
+* Wed Jun 03 2026 Automated Update <github-actions@github.com> - 3.5.0.84344-1
+- Update to version 3.5.0.84344
 * Mon Apr 27 2026 Kristián Kekeš <gamerix2006@gmail.com> - 3.4.3.81140-1
 - Initial RPM package from the upstream JetBrains Toolbox binary release
