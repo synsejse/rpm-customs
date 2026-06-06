@@ -1,4 +1,4 @@
-%global commit      1b1b2cab051c585f73eb95fc98ec869a4a29777c
+%global commit      bc5d0bc4e7ef817dbf8a0538db4310c0a10286c2
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 %global commitdate  20260606
 
@@ -46,8 +46,8 @@ cp -a etc usr %{buildroot}/
 %{_datadir}/X11/xorg.conf.d
 
 %changelog
-* Sat Jun 06 2026 Kristián Kekeš <gamerix2006@gmail.com> - 1.0.20260606git1b1b2ca-1
-- Initial package (CachyOS-settings fork @ 1b1b2ca)
-- Drop ntsync.conf; depend on ntsync-autoload instead
+* Sat Jun 06 2026 Kristián Kekeš <gamerix2006@gmail.com> - 1.0.20260606gitbc5d0bc-1
+- Initial package (CachyOS-settings fork @ bc5d0bc)
+- Depend on ntsync-autoload instead of shipping ntsync.conf
 - Rename nvidia.conf to nvidia_synse.conf to avoid nvidia-driver file conflict
 - Provide/Conflict zram-generator-defaults (ship CachyOS zram-generator.conf)
