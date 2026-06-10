@@ -1,6 +1,6 @@
-%global commit      f0069800c27812448953f12bb51df3e65283f19f
+%global commit d110023af6a99fa746de4dac50e47ea5d82a5c60
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
-%global commitdate  20260606
+%global commitdate 20260610
 
 Name:           synse-settings
 Version:        1.0.%{commitdate}git%{shortcommit}
@@ -49,6 +49,8 @@ cp -a etc usr %{buildroot}/
 %{_prefix}/lib/udev/rules.d/*
 
 %changelog
+* Wed Jun 10 2026 Automated Update <github-actions@github.com> - 1.0.20260610gitd110023-1
+- Update to git commit d110023
 * Tue Jun 09 2026 Kristián Kekeš <gamerix2006@gmail.com> - 1.0.20260609gitf006980-1
 - Move RAPL permissions to tmpfiles.conf
 - Remove X11/Xorg input configuration (Wayland-only system assumption)
