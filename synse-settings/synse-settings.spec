@@ -18,6 +18,9 @@ Provides:       zram-generator-defaults
 Conflicts:      zram-generator-defaults
 Requires:       ntsync-autoload
 
+Recommends:     tuned
+Recommends:     tuned-ppd
+
 %description
 synse-settings is a personal fork of CachyOS-settings, trimmed for Fedora on AMD
 hardware. It is a collection of drop-in system configuration files: sysctl tuning,
@@ -31,9 +34,6 @@ No support or stability is implied.
 %build
 
 %install
-if [ -f usr/lib/modprobe.d/nvidia.conf ]; then
-    mv usr/lib/modprobe.d/nvidia.conf usr/lib/modprobe.d/nvidia_synse.conf
-fi
 mkdir -p %{buildroot}
 cp -a etc usr %{buildroot}/
 
@@ -41,6 +41,8 @@ cp -a etc usr %{buildroot}/
 %license LICENSE.md
 %doc README.md
 %config(noreplace) %{_sysconfdir}/security/limits.d/*
+%dir %{_sysconfdir}/tuned/profiles/throughput-performance
+%config(noreplace) %{_sysconfdir}/tuned/profiles/throughput-performance/tuned.conf
 %{_prefix}/lib/modprobe.d/*
 %{_prefix}/lib/NetworkManager/conf.d/*
 %{_prefix}/lib/sysctl.d/*
@@ -49,6 +51,16 @@ cp -a etc usr %{buildroot}/
 %{_prefix}/lib/udev/rules.d/*
 
 %changelog
+* Wed Jun 10 2026 Kristián Kekeš <gamerix2006@gmail.com> - 1.0.20260610gitd110023-1
+- Ship /etc/tuned throughput-performance shadow profile (stop tuned-ppd
+  clobbering sysctl.d VM tuning)
+- Rename 70-cachyos-settings.conf to 70-synse-settings.conf
+- Add gaming sysctls: split_lock_mitigate=0, compaction_proactiveness=0,
+  BBR+fq, TCP fast open
+- Enable THP=always (pairs with existing THP shrinker tuning)
+- Drop NVIDIA modprobe/udev configs and legacy GCN amdgpu.conf (all-AMD,
+  RDNA2+ machines)
+
 * Wed Jun 10 2026 Automated Update <github-actions@github.com> - 1.0.20260610gitd110023-1
 - Update to git commit d110023
 * Tue Jun 09 2026 Kristián Kekeš <gamerix2006@gmail.com> - 1.0.20260609gitf006980-1
