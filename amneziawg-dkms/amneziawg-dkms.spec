@@ -1,7 +1,7 @@
 %global debug_package %{nil}
-%global commit ac946a9df100a17d342b5982d1947deef1b51952
+%global commit 2a6e1a02ac024f54a23e18f894a279b7f870b8fb
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
-%global commitdate 20260403
+%global commitdate 20260613
 
 Name:           amneziawg-dkms
 Version:        1.0.%{commitdate}git%{shortcommit}
@@ -70,6 +70,8 @@ dkms remove -m amneziawg -v %{version} -q --all || :
 %{_usrsrc}/amneziawg-%{version}
 
 %changelog
+* Sat Jun 13 2026 Automated Update <github-actions@github.com> - 1:1.0.20260613git2a6e1a0-1
+- Update to git commit 2a6e1a0
 * Thu Apr 30 2026 Kristián Kekeš <gamerix2006@gmail.com> - 1:1.0.20260403gitac946a9-1
 - Use SPDX license identifier
 - Drop deprecated Group tag
